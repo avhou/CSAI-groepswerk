@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from typing import List
 from llama_index.llms.huggingface import HuggingFaceLLM
+from llama_index.core.evaluation import FaithfulnessEvaluator, ContextRelevancyEvaluator, CorrectnessEvaluator, GuidelineEvaluator, SemanticSimilarityEvaluator
 import csv
 import torch
 
@@ -35,3 +36,22 @@ for query in queries:
     print(f"Query: {query}")
 
 responses = locally_run.complete(queries)
+
+faithfullness_evaluator = FaithfulnessEvaluator()
+context_relevancy_evaluator = ContextRelevancyEvaluator()
+correctness_evaluator = CorrectnessEvaluator()
+guideline_evaluator = GuidelineEvaluator()
+semantic_similarity_evaluator = SemanticSimilarityEvaluator()
+
+faithfullness_score = faithfullness_evaluator.evaluate(queries, responses)
+context_relevancy_score = context_relevancy_evaluator.evaluate(queries, responses)
+correctness_score = correctness_evaluator.evaluate(queries, responses)
+guideline_score = guideline_evaluator.evaluate(queries, responses)
+semantic_similarity_score = semantic_similarity_evaluator.evaluate(queries, responses)
+
+print(f"Faithfullness Score: {faithfullness_score}")
+print(f"Context Relevancy Score: {context_relevancy_score}")
+print(f"Correctness Score: {correctness_score}")
+print(f"Guideline Score: {guideline_score}")
+print(f"Semantic Similarity Score: {semantic_similarity_score}")
+
