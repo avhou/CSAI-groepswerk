@@ -15,7 +15,14 @@ load_dotenv()
 CSV_FILE_PATH = os.getenv('CSV_FILE_PATH')
 MODEL_NAME = os.getenv('MODEL_NAME')
 
-print(f"CSV File Path: {CSV_FILE_PATH}, Model Name: {MODEL_NAME}")
+# Make sure your cuda version is equal to the cuda pytorch version
+print(f"Pytorch version: {torch.version.cuda}")
+
+print("Is CUDA available:", torch.cuda.is_available())
+print("CUDA Device Count:", torch.cuda.device_count())
+if torch.cuda.is_available():
+    print("CUDA Device Name:", torch.cuda.get_device_name(0))
+
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using device: {device}")
