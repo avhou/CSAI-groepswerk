@@ -4,3 +4,13 @@ papers/Important_Questions_PromptEng.pdf
 .envrc
 **/.idea
 **/*iml
+**/report.aux
+**/report.bbl
+**/report.blg
+**/report.brf
+**/report.log
+**/report.out
+**/report.pdf
+report/report.run.xml
+report/report.pdf
+report/report.bcf
