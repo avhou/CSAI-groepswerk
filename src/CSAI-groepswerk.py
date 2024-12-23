@@ -3,6 +3,8 @@ from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.llms.ollama import Ollama
+from llama_index.core import StorageContext
+from llama_index.core import load_index_from_storage
 from promt_reader import *
 from typing import List
 from tqdm import tqdm
@@ -17,21 +19,28 @@ import os
 
 
 # function that takes the report and creates the retriever (with indexes etc.)
-def createRetriever(report, chunk_size, chunk_overlap, top_k):
+def createRetriever(report: str, chunk_size: int, chunk_overlap: int, top_k: int) -> VectorIndexRetriever:
     # load in document
     documents = SimpleDirectoryReader(input_files=[report]).load_data()
     parser = SentenceSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)  # tries to keep sentences together
     nodes = parser.get_nodes_from_documents(documents)
 
+
     # build indexes
     print(f"creating embedding model")
     embed_model = OllamaEmbedding(model_name="nomic-embed-text", base_url="http://localhost:11434")
+    vector_store_path = os.path.abspath("../vector-store")
+
     print(f"creating vector store")
-    index = VectorStoreIndex(
-        nodes,
-        embed_model=embed_model,
-        show_progress=True
-    )
+    if os.path.exists(vector_store_path):
+        index = load_index_from_storage(StorageContext.from_defaults(persist_dir=vector_store_path))
+    else:
+        index = VectorStoreIndex(
+            nodes,
+            embed_model=embed_model,
+            show_progress=True,
+        )
+        index.storage_context.persist(persist_dir=vector_store_path)
 
     # configure retriever
     print(f"creating retriever")
@@ -42,7 +51,7 @@ def createRetriever(report, chunk_size, chunk_overlap, top_k):
     return retriever
 
 
-def basicInformation(retriever, model):
+def basicInformation(retriever: VectorIndexRetriever, model: str):
     # Query content
     retrieved_nodes = retriever.retrieve(
         "What is the name of the company, the sector it operates in and location of headquarters?")
@@ -79,7 +88,7 @@ def basicInformation(retriever, model):
     print(basic_info)
     return basic_info, response_text
 
-def yearInformation(retriever, model):
+def yearInformation(retriever: VectorIndexRetriever, model: str):
     # Query content
     retrieved_nodes = retriever.retrieve(
         "In which year.txt was the report published?")
@@ -109,7 +118,7 @@ def yearInformation(retriever, model):
     return response_text
 
 
-def createPromptTemplate(retriever, model, basic_info, query_str, explanation, answer_length):
+def createPromptTemplate(retriever: VectorIndexRetriever, model: str, basic_info: str, query_str: str, explanation: str, answer_length: int) -> str:
     # Query content
     retrieved_nodes = retriever.retrieve(query_str)
     # create the "sources" block
@@ -126,19 +135,19 @@ def createPromptTemplate(retriever, model, basic_info, query_str, explanation, a
     return prompt
 
 
-def createPrompts(retriever, model, basic_info, answer_length, masterfile):
+def createPrompts(retriever: VectorIndexRetriever, model: str, basic_info: str, answer_length: int, masterfile):
     prompts = []
     questions = []
     for i in tqdm(np.arange(0, masterfile.shape[0])):
-        QUERY_STR = masterfile.iloc[i]["question"]
-        questions.append(QUERY_STR)
-        EXPLANATION = masterfile.iloc[i]["question definitions"]
+        query_str = masterfile.iloc[i]["question"]
+        questions.append(query_str)
+        explanation = masterfile.iloc[i]["question definitions"]
         prompts.append(
-            createPromptTemplate(retriever, model, basic_info, QUERY_STR, EXPLANATION, answer_length))
+            createPromptTemplate(retriever, model, basic_info, query_str, explanation, answer_length))
     print("Prompts Created")
     return prompts, questions
 
-def createAnswers(prompts, model) -> List[str]:
+def createAnswers(prompts: List[str], model: str) -> List[str]:
     answers = []
     llm = Ollama(temperature=0, model=model, request_timeout=120.0)
     for p in tqdm(prompts):
@@ -219,15 +228,15 @@ async def main():
         print("Execution with all parameters.")
 
     retriever = createRetriever(report, chunk_size, chunk_overlap, top_k)
-    BASIC_INFO, response_text = basicInformation(retriever, model)
+    basic_info, response_text = basicInformation(retriever, model)
     print(response_text)
-    print(BASIC_INFO)
+    print(basic_info)
     year_info = yearInformation(retriever, model)
     response_text["YEAR"] = year_info["YEAR"]
     response_text["REPORT_NAME"] = report
     print(response_text)
 
-    prompts, questions = createPrompts(retriever, model, BASIC_INFO, answer_length, masterfile)
+    prompts, questions = createPrompts(retriever, model, basic_info, answer_length, masterfile)
 
     answers = createAnswers(prompts, model)
 

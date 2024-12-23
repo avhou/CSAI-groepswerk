@@ -15,3 +15,5 @@ report/report.run.xml
 report/report.pdf
 report/report.bcf
 src/__pycache__
+vector-store
+**/Excel_Output*
