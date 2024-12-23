@@ -2,12 +2,15 @@ from llama_index.core.retrievers import VectorIndexRetriever
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.embeddings.ollama import OllamaEmbedding
+from llama_index.legacy.embeddings.huggingface import HuggingFaceEmbedding
+from llama_index.legacy.program import LMFormatEnforcerPydanticProgram
 from llama_index.llms.ollama import Ollama
-from llama_index.core import StorageContext
-from llama_index.core import load_index_from_storage
+from llama_index.llms.huggingface import HuggingFaceLLM
 from promt_reader import *
 from typing import List
 from tqdm import tqdm
+from models import *
+from huggingface_hub import login
 
 import numpy as np
 import pandas as pd
@@ -16,31 +19,29 @@ import json
 import asyncio
 import re
 import os
+from transformers import AutoTokenizer
 
 
 # function that takes the report and creates the retriever (with indexes etc.)
-def createRetriever(report: str, chunk_size: int, chunk_overlap: int, top_k: int) -> VectorIndexRetriever:
+def createRetriever(report, chunk_size, chunk_overlap, top_k):
     # load in document
     documents = SimpleDirectoryReader(input_files=[report]).load_data()
     parser = SentenceSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)  # tries to keep sentences together
     nodes = parser.get_nodes_from_documents(documents)
 
-
+    tokenizer = AutoTokenizer.from_pretrained("mistralai/Mistral-7B-v0.1")
+    tokenizer.pad_token = tokenizer.eos_token
     # build indexes
     print(f"creating embedding model")
-    embed_model = OllamaEmbedding(model_name="nomic-embed-text", base_url="http://localhost:11434")
-    vector_store_path = os.path.abspath("../vector-store")
-
+    # embed_model = OllamaEmbedding(model_name="nomic-embed-text", base_url="http://localhost:11434")
+    login(os.getenv("HUGGINGFACE_TOKEN"))
+    embed_model = HuggingFaceEmbedding(model_name="mistralai/Mistral-7B-v0.1", tokenizer=tokenizer, device="cpu")
     print(f"creating vector store")
-    if os.path.exists(vector_store_path):
-        index = load_index_from_storage(StorageContext.from_defaults(persist_dir=vector_store_path))
-    else:
-        index = VectorStoreIndex(
-            nodes,
-            embed_model=embed_model,
-            show_progress=True,
-        )
-        index.storage_context.persist(persist_dir=vector_store_path)
+    index = VectorStoreIndex(
+        nodes,
+        embed_model=embed_model,
+        show_progress=True
+    )
 
     # configure retriever
     print(f"creating retriever")
@@ -51,7 +52,7 @@ def createRetriever(report: str, chunk_size: int, chunk_overlap: int, top_k: int
     return retriever
 
 
-def basicInformation(retriever: VectorIndexRetriever, model: str):
+def basicInformation(retriever, model):
     # Query content
     retrieved_nodes = retriever.retrieve(
         "What is the name of the company, the sector it operates in and location of headquarters?")
@@ -88,7 +89,7 @@ def basicInformation(retriever: VectorIndexRetriever, model: str):
     print(basic_info)
     return basic_info, response_text
 
-def yearInformation(retriever: VectorIndexRetriever, model: str):
+def yearInformation(retriever, model):
     # Query content
     retrieved_nodes = retriever.retrieve(
         "In which year.txt was the report published?")
@@ -102,15 +103,27 @@ def yearInformation(retriever: VectorIndexRetriever, model: str):
     sources_block = "\n\n\n".join(sources)
 
     prompt = read_year_prompt(model, sources_block)
+    # llm = Ollama(temperature=0, model=model, request_timeout=120.0)
+    login(os.getenv("HUGGINGFACE_TOKEN"))
+    llm = HuggingFaceLLM(model_name="mistralai/Mistral-7B-v0.1")
+    program = LMFormatEnforcerPydanticProgram(
+        output_cls=YearQueryResponse,
+        prompt_template_str=prompt,
+        llm=llm,
+        verbose=True,
+    )
 
-    # or easily convert to message prompts (for chat API)
-    # messages = qa_template.format_messages(sources=sources_block)
+    response = program()
+    print(response)
 
-    # get response
-    response = Ollama(temperature=0, model=model, request_timeout=120.0).complete(prompt)
-    # replace front or back ```json {} ```
-    response_text_json = response.text.replace("```json", "").replace("```", "")
-    response_text = json.loads(response_text_json)
+    # # or easily convert to message prompts (for chat API)
+    # # messages = qa_template.format_messages(sources=sources_block)
+    #
+    # # get response
+    # response = Ollama(temperature=0, model=model, request_timeout=120.0).complete(prompt)
+    # # replace front or back ```json {} ```
+    # response_text_json = response.text.replace("```json", "").replace("```", "")
+    response_text = json.loads(response)
 
     print(f"this is the response text for year.txt information")
     print(response_text)
@@ -118,7 +131,7 @@ def yearInformation(retriever: VectorIndexRetriever, model: str):
     return response_text
 
 
-def createPromptTemplate(retriever: VectorIndexRetriever, model: str, basic_info: str, query_str: str, explanation: str, answer_length: int) -> str:
+def createPromptTemplate(retriever, model, basic_info, query_str, explanation, answer_length):
     # Query content
     retrieved_nodes = retriever.retrieve(query_str)
     # create the "sources" block
@@ -135,19 +148,19 @@ def createPromptTemplate(retriever: VectorIndexRetriever, model: str, basic_info
     return prompt
 
 
-def createPrompts(retriever: VectorIndexRetriever, model: str, basic_info: str, answer_length: int, masterfile):
+def createPrompts(retriever, model, basic_info, answer_length, masterfile):
     prompts = []
     questions = []
     for i in tqdm(np.arange(0, masterfile.shape[0])):
-        query_str = masterfile.iloc[i]["question"]
-        questions.append(query_str)
-        explanation = masterfile.iloc[i]["question definitions"]
+        QUERY_STR = masterfile.iloc[i]["question"]
+        questions.append(QUERY_STR)
+        EXPLANATION = masterfile.iloc[i]["question definitions"]
         prompts.append(
-            createPromptTemplate(retriever, model, basic_info, query_str, explanation, answer_length))
+            createPromptTemplate(retriever, model, basic_info, QUERY_STR, EXPLANATION, answer_length))
     print("Prompts Created")
     return prompts, questions
 
-def createAnswers(prompts: List[str], model: str) -> List[str]:
+def createAnswers(prompts, model) -> List[str]:
     answers = []
     llm = Ollama(temperature=0, model=model, request_timeout=120.0)
     for p in tqdm(prompts):
@@ -228,15 +241,15 @@ async def main():
         print("Execution with all parameters.")
 
     retriever = createRetriever(report, chunk_size, chunk_overlap, top_k)
-    basic_info, response_text = basicInformation(retriever, model)
+    BASIC_INFO, response_text = basicInformation(retriever, model)
     print(response_text)
-    print(basic_info)
+    print(BASIC_INFO)
     year_info = yearInformation(retriever, model)
     response_text["YEAR"] = year_info["YEAR"]
     response_text["REPORT_NAME"] = report
     print(response_text)
 
-    prompts, questions = createPrompts(retriever, model, basic_info, answer_length, masterfile)
+    prompts, questions = createPrompts(retriever, model, BASIC_INFO, answer_length, masterfile)
 
     answers = createAnswers(prompts, model)
 
