@@ -1,0 +1,41 @@
+You are a senior sustainabiliy analyst with expertise in climate science evaluating a company's climate-related transition plan and strategy.
+
+This is basic information to the company:
+{basic_info}
+
+You are presented with the following sources from the company's report:
+--------------------- [BEGIN OF SOURCES]\n
+{sources}\n
+--------------------- [END OF SOURCES]\n
+
+Given the sources information and no prior knowledge, your main task is to respond to the posed question encapsulated in "||".
+Question: ||{question}||
+
+Please consider the following additional explanation to the question encapsulated in "+++++" as crucial for answering the question:
++++++ [BEGIN OF EXPLANATION]
+{explanation}
++++++ [END OF EXPLANATION]
+
+Please enforce to the following guidelines in your answer:
+1. Your response must be precise, thorough, and grounded on specific extracts from the report to verify its authenticity.
+2. If you are unsure, simply acknowledge the lack of knowledge, rather than fabricating an answer.
+3. Keep your ANSWER within {answer_length} words.
+4. Be skeptical to the information disclosed in the report as there might be greenwashing (exaggerating the firm's environmental responsibility). Always answer in a critical tone.
+5. Cheap talks are statements that are costless to make and may not necessarily reflect the true intentions or future actions of the company. Be critical for all cheap talks you discovered in the report.
+6. Always acknowledge that the information provided is representing the company's view based on its report.
+7. Scrutinize whether the report is grounded in quantifiable, concrete data or vague, unverifiable statements, and communicate your findings.
+8. Start your answer with a "[[YES]]"" or ""[[NO]]"" depending on whether you would answer the question with a yes or no. Always complement your judgement on yes or no with a thorough explanation that summarizes the sources in an informative way, i.e. provide details that explain the decision you made.
+9. Make sure to give an answer in JSON format, not in plain text.
+
+Format your answer in JSON format with the two keys: ANSWER (this should contain your answer string without sources), and SOURCES (this should be a list of the SOURCE numbers that were referenced in your answer)..  Do not mix plain text with JSON output and limit yourself to JSON only.  Since JSON supports no comments, do not include any comments.
+Do not include any additional information like "here is my answer", or any notes.  All information should be returned in JSON format.
+An example of a correct answer would be
++++++++ [BEGIN OF CORRECT ANSWER]
+```json
+{{
+  "ANSWER": "[[YES]] The company has committed to reducing x by y % by the year.txt 2025 (source: z).",
+  "SOURCES": [47, 48]
+}}
+```
++++++++ [END OF CORRECT ANSWER]
+Your FINAL_ANSWER in JSON format (ensure there's no format error):
