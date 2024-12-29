@@ -6,7 +6,8 @@ from llama_index.llms.ollama import Ollama
 from llama_index.core import StorageContext
 from llama_index.core import load_index_from_storage
 from promt_reader import *
-from typing import List
+import logging
+import sys
 from tqdm import tqdm
 from models import *
 
@@ -15,7 +16,6 @@ import pandas as pd
 
 import json
 import asyncio
-import re
 import os
 
 
@@ -72,7 +72,7 @@ def basicInformation(retriever: VectorIndexRetriever, model: str):
 
     prompt = read_general_prompt(model, sources_block, json_schema)
 
-    response = Ollama(temperature=0, model=model, request_timeout=120.0, json_mode=True).complete(prompt)
+    response = Ollama(temperature=0, model=model, request_timeout=120.0, json_mode=True, duration=-1, context_size=4096).complete(prompt)
 
     response_json = json.loads(response.text)
     print(f"basic info response : {response_json}")
@@ -100,7 +100,7 @@ def yearInformation(retriever: VectorIndexRetriever, model: str):
 
     prompt = read_year_prompt(model, sources_block, json_schema)
 
-    response = Ollama(temperature=0, model=model, request_timeout=120.0, json_mode=True).complete(prompt)
+    response = Ollama(temperature=0, model=model, request_timeout=120.0, json_mode=True, duration=-1, context_size=4096).complete(prompt)
     response_json = json.loads(response.text)
     print(f"year response : {response_json}")
     return response_json
@@ -140,7 +140,7 @@ def createPrompts(retriever: VectorIndexRetriever, model: str, basic_info: str, 
 
 def createAnswers(prompts: List[str], model: str) -> List[str]:
     answers = []
-    llm = Ollama(temperature=0, model=model, request_timeout=120.0, json_mode=True)
+    llm = Ollama(temperature=0, model=model, request_timeout=120.0, json_mode=True, duration=-1, context_size=4096)
     for p in tqdm(prompts):
         response = llm.complete(p)
         print(f"qa response : {response.text}")
@@ -206,6 +206,8 @@ def outputExcel(answers, questions, prompts, report, masterfile, model, option="
     return excel_path_qa
 
 async def main():
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+    logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
     masterfile = pd.read_excel("../data/questions_masterfile_100524.xlsx")
     chunk_size = 350
     chunk_overlap = 50
