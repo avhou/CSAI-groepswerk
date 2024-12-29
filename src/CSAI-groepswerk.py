@@ -213,7 +213,7 @@ async def main():
     answer_length = 200
 
     report = "../data/CSAI-reports/Zara_Financial_Sustainability_Report_2023.pdf"
-    model = "mistral"
+    model = "llama3:instruct"
 
     # if option of less is given
     try:

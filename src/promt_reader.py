@@ -15,5 +15,5 @@ def read_qa_prompt(model: str, basic_info: str, sources: str, question: str, exp
 
 
 def read_prompt(model: str, file: str) -> str:
-    with open(os.path.join("prompts", model, file), "r") as f:
+    with open(os.path.join("prompts", model.split(":")[0], file), "r") as f:
         return f.read()
