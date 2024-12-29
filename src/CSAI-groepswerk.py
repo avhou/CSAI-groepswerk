@@ -163,12 +163,12 @@ def outputExcel(answers, questions, prompts, report, masterfile, model, option="
             answer_dict = json.loads(a)
             # check for right format
             QueryResponse.model_validate_json(a)
-        except:
-            print(f"{i} with formatting error")
+        except Exception as e:
+            print(f"{i} with formatting error : {e}")
             format_error = True
             try:
                 answer_dict = {"ANSWER": "CAUTION: Formatting error occurred, this is the raw answer:\n" + a.text,
-                               "EXPLANATION": "See In Answer",
+                               "EXPLANATION": f"See In Answer.  Error was {e}.",
                                "SOURCES": "See In Answer"}
             except:
                 answer_dict = {"ANSWER": "Failure in answering this question.", "EXPLANATION": "See In Answer", "SOURCES": []}
@@ -183,7 +183,7 @@ def outputExcel(answers, questions, prompts, report, masterfile, model, option="
 
         # other values
         ans.append(answer_dict["EXPLANATION"])
-        source_pages.append(", ".join(map(str, answer_dict["SOURCES"])))
+        source_pages.append(", ".join(map(str, answer_dict["SOURCES"] if "SOURCES" in answer_dict else [])))
         source_texts.append(prompts[i].split("---------------------")[1])
 
         if i == 0:
@@ -213,7 +213,7 @@ async def main():
     answer_length = 200
 
     report = "../data/CSAI-reports/Zara_Financial_Sustainability_Report_2023.pdf"
-    model = "llama3:instruct"
+    model = "llama2"
 
     # if option of less is given
     try:

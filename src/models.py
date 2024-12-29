@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ConfigDict
-from typing import List
+from typing import List, Optional
 
 class YearQueryResponse(BaseModel):
     """
@@ -30,5 +30,5 @@ class QueryResponse(BaseModel):
     """ use answer true if you would answer the question with yes.  answer false if you would anser the question with no  """
     EXPLANATION: str
     """ thorough explanation of why you judged the answer should be judged as yes or no.  sources should not be enumerated here, these should be enumerated in the SOURCES field """
-    SOURCES: List[int]
-    """ a list of the SOURCE numbers that were referenced in your answer """
+    SOURCES: Optional[List[int]] = []
+    """ a list of the SOURCE numbers that were referenced in your answer.  if no sources are found, this should be an empty list. """

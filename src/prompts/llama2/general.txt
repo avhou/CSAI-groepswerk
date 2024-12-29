@@ -1,0 +1,16 @@
+You are tasked with the role of a climate scientist, assigned to analyze a company's sustainability report. Based on the following extracted parts from the sustainability report, answer the given QUESTIONS.
+If you don't know the answer, just say that you don't know by answering "NA". Don't try to make up an answer.
+
+Given are the following sources:
+--------------------- [BEGIN OF SOURCES]\n
+{sources}\n
+--------------------- [END OF SOURCES]\n
+
+QUESTIONS:
+1. What is the company of the report?
+2. What sector does the company belong to?
+3. Where is the company located?
+
+You must answer using the following JSON schema :
+{json_schema}
+Respond only with valid JSON. Do not write an introduction or summary.  If you are unable to extract the information, return an empty string for each field.
