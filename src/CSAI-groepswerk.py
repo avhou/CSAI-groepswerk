@@ -8,6 +8,7 @@ from llama_index.core import load_index_from_storage
 from promt_reader import *
 from typing import List
 from tqdm import tqdm
+from models import *
 
 import numpy as np
 import pandas as pd
@@ -33,7 +34,7 @@ def createRetriever(report: str, chunk_size: int, chunk_overlap: int, top_k: int
 
     print(f"creating vector store")
     if os.path.exists(vector_store_path):
-        index = load_index_from_storage(StorageContext.from_defaults(persist_dir=vector_store_path))
+        index = load_index_from_storage(StorageContext.from_defaults(persist_dir=vector_store_path), embed_model=embed_model)
     else:
         index = VectorStoreIndex(
             nodes,
@@ -66,27 +67,20 @@ def basicInformation(retriever: VectorIndexRetriever, model: str):
 
     print(f"sources block has length {len(sources)}")
 
-    prompt = read_general_prompt(model, sources_block)
+    json_schema = str(GeneralInfoQueryResponse.model_json_schema())
+    print(f"general info schema : {json_schema}")
 
-    # or easily convert to message prompts (for chat API)
-    # messages = qa_template.format_messages(sources=sources_block)
+    prompt = read_general_prompt(model, sources_block, json_schema)
 
-    # get response
-    response = Ollama(temperature=0, model=model, request_timeout=120.0).complete(prompt)
-    # replace front or back ```json {} ```
-    response_text_json = response.text.replace("```json", "").replace("```", "")
-    print("this is the response text before selection:")
-    print(response_text_json)
-    response_text = json.loads(response_text_json)
+    response = Ollama(temperature=0, model=model, request_timeout=120.0, json_mode=True).complete(prompt)
 
-    print("this is the response text:")
-    print(response_text)
+    response_json = json.loads(response.text)
+    print(f"basic info response : {response_json}")
+    # create textual representation
+    basic_info = f" - Company name: {response_json['COMPANY_NAME']}\n - Industry: {response_json['COMPANY_SECTOR']}\n - Headquarter Location: {response_json['COMPANY_LOCATION']}"
+    print(f"basic info text : {basic_info}")
 
-    # create a text to it
-    basic_info = f" - Company name: {response_text['COMPANY_NAME']}\n - Industry: {response_text['COMPANY_SECTOR']}\n - Headquarter Location: {response_text['COMPANY_LOCATION']}"
-
-    print(basic_info)
-    return basic_info, response_text
+    return basic_info, response_json
 
 def yearInformation(retriever: VectorIndexRetriever, model: str):
     # Query content
@@ -101,21 +95,15 @@ def yearInformation(retriever: VectorIndexRetriever, model: str):
         sources.append(f"PAGE {page_num}: {source}")
     sources_block = "\n\n\n".join(sources)
 
-    prompt = read_year_prompt(model, sources_block)
+    json_schema = str(YearQueryResponse.model_json_schema())
+    print(f"year schema : {json_schema}")
 
-    # or easily convert to message prompts (for chat API)
-    # messages = qa_template.format_messages(sources=sources_block)
+    prompt = read_year_prompt(model, sources_block, json_schema)
 
-    # get response
-    response = Ollama(temperature=0, model=model, request_timeout=120.0).complete(prompt)
-    # replace front or back ```json {} ```
-    response_text_json = response.text.replace("```json", "").replace("```", "")
-    response_text = json.loads(response_text_json)
-
-    print(f"this is the response text for year.txt information")
-    print(response_text)
-
-    return response_text
+    response = Ollama(temperature=0, model=model, request_timeout=120.0, json_mode=True).complete(prompt)
+    response_json = json.loads(response.text)
+    print(f"year response : {response_json}")
+    return response_json
 
 
 def createPromptTemplate(retriever: VectorIndexRetriever, model: str, basic_info: str, query_str: str, explanation: str, answer_length: int) -> str:
@@ -130,7 +118,10 @@ def createPromptTemplate(retriever: VectorIndexRetriever, model: str, basic_info
         sources.append(f"PAGE {page_num}: {source}")
     sources_block = "\n\n\n".join(sources)
 
-    prompt = read_qa_prompt(model, basic_info, sources_block, query_str, explanation, answer_length)
+    json_schema = str(QueryResponse.model_json_schema())
+    print(f"qa schema : {json_schema}")
+
+    prompt = read_qa_prompt(model, basic_info, sources_block, query_str, explanation, answer_length, json_schema)
 
     return prompt
 
@@ -138,7 +129,7 @@ def createPromptTemplate(retriever: VectorIndexRetriever, model: str, basic_info
 def createPrompts(retriever: VectorIndexRetriever, model: str, basic_info: str, answer_length: int, masterfile):
     prompts = []
     questions = []
-    for i in tqdm(np.arange(0, masterfile.shape[0])):
+    for i in np.arange(0, masterfile.shape[0]):
         query_str = masterfile.iloc[i]["question"]
         questions.append(query_str)
         explanation = masterfile.iloc[i]["question definitions"]
@@ -149,11 +140,10 @@ def createPrompts(retriever: VectorIndexRetriever, model: str, basic_info: str, 
 
 def createAnswers(prompts: List[str], model: str) -> List[str]:
     answers = []
-    llm = Ollama(temperature=0, model=model, request_timeout=120.0)
+    llm = Ollama(temperature=0, model=model, request_timeout=120.0, json_mode=True)
     for p in tqdm(prompts):
         response = llm.complete(p)
-        print("this is the main response:")
-        print(response)
+        print(f"qa response : {response.text}")
         answers.append(response)
 
     print("Answers Given")
@@ -165,27 +155,34 @@ def outputExcel(answers, questions, prompts, report, masterfile, model, option="
     categories, ans, ans_verdicts, source_pages, source_texts = [], [], [], [], []
     subcategories = [i.split("_")[1] for i in masterfile.identifier.to_list()]
     for i, a in enumerate(answers):
+        format_error = False
         try:
             # replace front or back ```json {} ```
             a = a.text.replace("```json", "").replace("```", "")
+            print(f"checking response {a}")
             answer_dict = json.loads(a)
+            # check for right format
+            QueryResponse.model_validate_json(a)
         except:
             print(f"{i} with formatting error")
+            format_error = True
             try:
                 answer_dict = {"ANSWER": "CAUTION: Formatting error occurred, this is the raw answer:\n" + a.text,
+                               "EXPLANATION": "See In Answer",
                                "SOURCES": "See In Answer"}
             except:
-                answer_dict = {"ANSWER": "Failure in answering this question.", "SOURCES": "NA"}
+                answer_dict = {"ANSWER": "Failure in answering this question.", "EXPLANATION": "See In Answer", "SOURCES": []}
 
-        # final verdict
-        verdict = re.search(r"\[\[([^]]+)\]\]", answer_dict["ANSWER"])
-        if verdict:
-            ans_verdicts.append(verdict.group(1))
+        if format_error:
+            ans_verdicts.append("N/A")
         else:
-            ans_verdicts.append("NA")
+            if answer_dict["ANSWER"]:
+                ans_verdicts.append("YES")
+            else:
+                ans_verdicts.append("NO")
 
         # other values
-        ans.append(answer_dict["ANSWER"])
+        ans.append(answer_dict["EXPLANATION"])
         source_pages.append(", ".join(map(str, answer_dict["SOURCES"])))
         source_texts.append(prompts[i].split("---------------------")[1])
 
@@ -229,8 +226,6 @@ async def main():
 
     retriever = createRetriever(report, chunk_size, chunk_overlap, top_k)
     basic_info, response_text = basicInformation(retriever, model)
-    print(response_text)
-    print(basic_info)
     year_info = yearInformation(retriever, model)
     response_text["YEAR"] = year_info["YEAR"]
     response_text["REPORT_NAME"] = report

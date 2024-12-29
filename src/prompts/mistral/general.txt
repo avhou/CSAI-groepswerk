@@ -11,14 +11,6 @@ QUESTIONS:
 2. What sector does the company belong to?
 3. Where is the company located?
 
-Format your answers in JSON format only with the following keys: COMPANY_NAME and COMPANY_SECTOR COMPANY_LOCATION.  Do not use FINAL_ANSWER as a key in your output.  Do not mix plain text with JSON output and limit yourself to JSON only.  Since JSON supports no comments, do not include any comments.
-Do not include any additional information like "based on the provided sources, here are my answers".
-An example of a correct answer would be
-```json
-{{
-  "COMPANY_NAME": "International company",
-  "COMPANY_SECTOR": "Financial Services",
-  "COMPANY_LOCATION": "123 Chelsey drive, TN 38197, USA"
-}}
-```
+You must answer using the following JSON schema :
+{json_schema}
 Your FINAL_ANSWER in JSON (ensure there's no format error):

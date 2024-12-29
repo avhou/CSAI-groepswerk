@@ -24,18 +24,9 @@ Please enforce to the following guidelines in your answer:
 5. Cheap talks are statements that are costless to make and may not necessarily reflect the true intentions or future actions of the company. Be critical for all cheap talks you discovered in the report.
 6. Always acknowledge that the information provided is representing the company's view based on its report.
 7. Scrutinize whether the report is grounded in quantifiable, concrete data or vague, unverifiable statements, and communicate your findings.
-8. Start your answer with a "[[YES]]"" or ""[[NO]]"" depending on whether you would answer the question with a yes or no. Always complement your judgement on yes or no with a thorough explanation that summarizes the sources in an informative way, i.e. provide details that explain the decision you made.
-9. Make sure to give an answer in JSON format, not in plain text.
+8. You should decide whether you would answer the question with a yes or no, but you should also always complement your judgement on yes or no with a thorough explanation that summarizes the sources in an informative way, i.e. provide details that explain the decision you made.
 
-Format your answer in JSON format with the two keys: ANSWER (this should contain your answer string without sources), and SOURCES (this should be a list of the SOURCE numbers that were referenced in your answer)..  Do not mix plain text with JSON output and limit yourself to JSON only.  Since JSON supports no comments, do not include any comments.
-Do not include any additional information like "here is my answer", or any notes.  All information should be returned in JSON format.
-An example of a correct answer would be
-+++++++ [BEGIN OF CORRECT ANSWER]
-```json
-{{
-  "ANSWER": "[[YES]] The company has committed to reducing x by y % by the year.txt 2025 (source: z).",
-  "SOURCES": [47, 48]
-}}
-```
-+++++++ [END OF CORRECT ANSWER]
+
+You must answer using the following JSON schema :
+{json_schema}
 Your FINAL_ANSWER in JSON format (ensure there's no format error):
