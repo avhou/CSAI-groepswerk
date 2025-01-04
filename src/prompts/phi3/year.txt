@@ -9,6 +9,6 @@ Given are the following sources:
 QUESTION:
 In which year.txt was the report published?
 
-You must answer using the following JSON schema :
+This is the JSON schema that describes the structure of the expected output :
 {json_schema}
-Your FINAL_ANSWER in JSON (ensure there's no format error):
+Respond only with JSON that conforms to the above schema. Do not write an introduction or summary.  If you are unable to extract the information, return an empty string for each field.

@@ -27,6 +27,6 @@ Please enforce to the following guidelines in your answer:
 8. You should decide whether you would answer the question with a yes or no, but you should also always complement your judgement on yes or no with a thorough explanation that summarizes the sources in an informative way, i.e. provide details that explain the decision you made.
 
 
-You must answer using the following JSON schema :
+This is the JSON schema that describes the structure of the expected output :
 {json_schema}
-Your FINAL_ANSWER in JSON format (ensure there's no format error):
+Respond only with JSON that conforms to the above schema. Do not write an introduction or summary.  If you are unable to extract the information, return an empty string for each field.

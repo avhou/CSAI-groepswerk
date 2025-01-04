@@ -11,6 +11,6 @@ QUESTIONS:
 2. What sector does the company belong to?
 3. Where is the company located?
 
-You must answer using the following JSON schema :
+This is the JSON schema that describes the structure of the expected output :
 {json_schema}
-Respond only with valid JSON. Do not write an introduction or summary.  If you are unable to extract the information, return an empty string for each field.
+Respond only with JSON that conforms to the above schema. Do not write an introduction or summary.  If you are unable to extract the information, return an empty string for each field.
