@@ -21,13 +21,13 @@
 
 \maketitle
 
-\section{Introduction}
+\section{Introduction} \label{sec:introduction}
 This report details the step taken by Arne Lescrauwaet (852617312), Joachim Verschelde (852594432), Alexander Van Hecke (852631385) and Farid Rasoolzadeh Baghmisheh (852104522) for the assignment of the 2023/2024 Capita Selecta in Artificial Intelligence course organised by the Open University (\cite{ou}).
 
-For this assignment we decided to expand on the experiments described in \cite{durability}.
+For this assignment we expand on the experiments described in \cite{durability}.
 In this paper, the authors investigate the use of an LLM model and a RAG setup \cite{rag} to asses company durability disclosures.
-They investigate climate transition disclosures by examining the published sustainability reports of carbon-intensive companies.
-A set of 64 indicators (questions) was gathered that investigated measures already taken or yet to be taken.
+By examining published sustainability reports of carbon-intensive companies, they investigate whether climate transition measures are disclosed in these reports.
+A set of 64 indicators (questions) was used to investigate measures already taken or yet to be taken.
 For each question, relevant passages in the published sustainability reports were retrieved and passed as additional context to the GPT-4 model.
 Their main conclusions were :
 
@@ -41,7 +41,7 @@ In this research, we want to expand on \cite{durability} in the following ways :
 
 \begin{itemize}
     \item We examine data published by the fast fashion industry instead of carbon-intensive companies.
-    \item We evaluate and compare several freely available LLM models instead of using one commercial LLM model.
+    \item We evaluate and compare several freely available LLM models instead of using a commercial LLM model.
     \item We evaluate additional indicators provided by dr. ir. Clara Maathuis of Open University \cite{ou}.
 \end{itemize}
 
@@ -50,48 +50,90 @@ The text cluster introduces a number of techniques to improve the performance of
 One of the techniques discussed is RAG, first introduced in \cite{rag}.
 RAG adds context when querying LLM models, allowing the model to get a better semantic understanding of the question and to generate a more relevant answer.
 The main strenghts of a RAG based setup are \textbf{i)} the ability to access up-to-date information (no cutoff), \textbf{ii)} the ability to add domain specific knowledge, \textbf{iii)} efficiency, as the parameteric memory does not need to contain all knowledge and no retraining or fine-tuning is necessary, \textbf{iv)} the ability to generate more specific, more diverse and more factual answers and \textbf{v)} the scalability of the approach.
-The main disadvantages of a RAG based setup are \textbf{i)} context limits of LLMs model limit how much additional information can be passed, \textbf{ii)} the performance of the retriever as the weakest link in the setup, \textbf{iii)} the additional latency and complexity introduced, \textbf{iv)} the need to keep the knowledge base up-to-date.
+The main disadvantages of a RAG based setup include \textbf{i)} the context limits of LLM models, which restricts how much additional information can be passed, \textbf{ii)} the performance of the retriever as the weakest link in the setup, \textbf{iii)} the additional latency and complexity introduced, \textbf{iv)} the need to keep the knowledge base up-to-date.
 Evaluation of climate transition disclosures presents an excellent concrete use case of RAG.
 
-\section{Goal}
-discuss the objective of this project split it into multiple smaller objectives that will be tackled in this project
-\begin{itemize}
-    \item Main goal
-    \item Smaller objectives and report outline
-\end{itemize}
+\section{Goal} \label{sec:goal}
 
-\section{Data analysis}
-describe the dataset used considering entities such as features and target, and discuss processing and cleaning aspects like duplicates and outliers
-\begin{itemize}
-    \item Dataset description
-    \item Data processing
-    \item Data cleaning
-    \item Data visualization and interpretation
-\end{itemize}
+\begin{quotation}
+    discuss the objective of this project split it into multiple smaller objectives that will be tackled in this project
+    \begin{itemize}
+        \item Main goal
+        \item Smaller objectives and report outline
+    \end{itemize}
+\end{quotation}
 
-\section{Methodology and Implementation}
-describe the followed methodological approach and discuss important implementation choices providing concrete examples
-\begin{itemize}
-    \item Research Methodology discussion
-    \item Design elaboration
-    \item Implementation choices discussion
-\end{itemize}
+The goal of this assignment is to expand on the RAG setup introduced in \cite{durability}, by using different data, different LLM models and additional metrics.
 
-\section{Evaluation and Results}
-discuss the evaluation method and criteria used, and interpret the results obtained considering both technical and ethical aspects (norms and values)
-\begin{itemize}
-    \item Evaluation mechanism discussion and evaluation criteria selected
-    \item Results description using different data visualization methods.
-    \item Interpretation of the results obtained and positioning in the field considering both relevant technical and ethical aspects
-\end{itemize}
+Instead of focusing on carbon-intensive industry, we want to examine sustainability reports published by fast fashion companies.
+This illustrates the ability of RAG based setups to easily incorporate domain specific knowledge or questions.
+Section \ref{sec:data analysis} details the data used.
 
-\section{Conclusions and Discussion}
-summarize the approach followed in this project and draw conclusions based on the results obtained
-\begin{itemize}
-    \item Conclusions based on the approach followed and results obtained
-    \item Discuss the meaning and findings of this project in a broader context considering the cluster selected and aim of this course
-    \item Discuss limitations and future directions based on the findings obtained
-\end{itemize}
+As described in \cite{durability}, the GPT-4 model performs well on the specific task of examining sustainability reports.
+It is interesting to see how freely available models compare to commercial models.
+Furthermore, we expand the initial set of 64 indicators by examining two additional scenarios.
+In the first scenario \textit{(greenwashing detection)} we assess if a company shows potential signs of involvement or engagement with greenwashing methods and practices.
+In the second scenario \textit{(greenwashing mitigation)} we provide relevant mitigation methods if the company is indeed engaging in greenwashing practices.
+In section \ref{sec:methodology} we detail the models we evaluate and the experiments conducted.
+
+Section \ref{sec:evaluation} details the evaluation of the results.
+We do both a quantitative and a qualitative evaluation.
+Since the LLM is asked to not only judge whether the question is true or false, but also to provide argumentation about the decision made, it is important to evaluate the argumentation.
+Metrics such as coherence, consistency and relevance are important in this context.
+
+Finally, we summarize the approach and provide conclusions in section \ref{sec:conclusions}.
+
+\section{Data analysis} \label{sec:data analysis}
+
+\begin{quotation}
+    describe the dataset used considering entities such as features and target, and discuss processing and cleaning aspects like duplicates and outliers
+    \begin{itemize}
+        \item Dataset description
+        \item Data processing
+        \item Data cleaning
+        \item Data visualization and interpretation
+    \end{itemize}
+\end{quotation}
+
+For this assignment, we investigate the 2023 sustainability reports of two fast-fashion companies (\textbf{H\&M} and \textbf{Zara}).
+There reports are publicly available in PDF format.
+Since we use the \texttt{llama\_index} python package to extract the text from the PDF files, no additional data processing or cleaning is necessary.
+The \texttt{SentenceSplitter} class is used to extract coherent text blocks from PDFs.
+In order to keep sentences together as much as possible, we use a \texttt{chunk\_size} of 350, and a \texttt{chunk\_overlap} of 50.
+We retrieve the 8 most relevant chunks as additional context for each question.
+
+\section{Methodology and Implementation} \label{sec:methodology}
+
+\begin{quotation}
+    describe the followed methodological approach and discuss important implementation choices providing concrete examples
+    \begin{itemize}
+        \item Research Methodology discussion
+        \item Design elaboration
+        \item Implementation choices discussion
+    \end{itemize}
+\end{quotation}
+
+\section{Evaluation and Results} \label{sec:evaluation}
+
+\begin{quotation}
+    discuss the evaluation method and criteria used, and interpret the results obtained considering both technical and ethical aspects (norms and values)
+    \begin{itemize}
+        \item Evaluation mechanism discussion and evaluation criteria selected
+        \item Results description using different data visualization methods.
+        \item Interpretation of the results obtained and positioning in the field considering both relevant technical and ethical aspects
+    \end{itemize}
+\end{quotation}
+
+\section{Conclusions and Discussion} \label{sec:conclusions}
+
+\begin{quotation}
+    summarize the approach followed in this project and draw conclusions based on the results obtained
+    \begin{itemize}
+        \item Conclusions based on the approach followed and results obtained
+        \item Discuss the meaning and findings of this project in a broader context considering the cluster selected and aim of this course
+        \item Discuss limitations and future directions based on the findings obtained
+    \end{itemize}
+\end{quotation}
 
 \printbibliography
 
