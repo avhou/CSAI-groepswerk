@@ -20,9 +20,9 @@ import os
 
 
 # function that takes the report and creates the retriever (with indexes etc.)
-def createRetriever(report: str, chunk_size: int, chunk_overlap: int, top_k: int) -> VectorIndexRetriever:
+def createRetriever(report: List[str], chunk_size: int, chunk_overlap: int, top_k: int) -> VectorIndexRetriever:
     # load in document
-    documents = SimpleDirectoryReader(input_files=[report]).load_data()
+    documents = SimpleDirectoryReader(input_files=report).load_data()
     parser = SentenceSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)  # tries to keep sentences together
     nodes = parser.get_nodes_from_documents(documents)
 
@@ -30,18 +30,11 @@ def createRetriever(report: str, chunk_size: int, chunk_overlap: int, top_k: int
     # build indexes
     print(f"creating embedding model")
     embed_model = OllamaEmbedding(model_name="nomic-embed-text", base_url="http://localhost:11434")
-    vector_store_path = os.path.abspath("../vector-store")
-
-    print(f"creating vector store")
-    if os.path.exists(vector_store_path):
-        index = load_index_from_storage(StorageContext.from_defaults(persist_dir=vector_store_path), embed_model=embed_model)
-    else:
-        index = VectorStoreIndex(
-            nodes,
-            embed_model=embed_model,
-            show_progress=True,
-        )
-        index.storage_context.persist(persist_dir=vector_store_path)
+    index = VectorStoreIndex(
+        nodes,
+        embed_model=embed_model,
+        show_progress=True,
+    )
 
     # configure retriever
     print(f"creating retriever")
@@ -206,42 +199,60 @@ def outputExcel(answers, questions, prompts, report, masterfile, model, option="
     return excel_path_qa
 
 async def main():
-    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-    logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
+    # logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+    # logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
     masterfile = pd.read_excel("../data/questions_masterfile_100524.xlsx")
     chunk_size = 350
     chunk_overlap = 50
     top_k = 8
     answer_length = 200
 
-    report = "../data/CSAI-reports/Zara_Financial_Sustainability_Report_2023.pdf"
-    model = "mistral"
+    report_sets = [
+        ["../data/CSAI-reports/Zara_Financial_Sustainability_Report_2023.pdf"],
+        [
+            "../data/CSAI-reports/HM-Group-Annual-and-Sustainability-Report-2023.pdf",
+            "../data/CSAI-reports/HM-Group-Sustainability-Disclosure-2023.pdf",
+        ]
+    ]
+    excel_sets = [
+       "zara",
+        "hm",
+    ]
+    models = [
+        "mistral",
+        "llama2",
+        "llama3:instruct",
+        "phi3:14b-instruct",
+    ]
 
-    # if option of less is given
-    try:
-        less = int(os.getenv("NUMBER_OF_QUESTIONS"))
-        masterfile = masterfile[:less].copy()
-        print(f"Execution with subset of {less} indicators.")
-    except:
-        less = "all"
-        print("Execution with all parameters.")
+    for i, report_set in enumerate(report_sets):
+        for model in models:
+            # if option of less is given
+            try:
+                less = int(os.getenv("NUMBER_OF_QUESTIONS"))
+                masterfile = masterfile[:less].copy()
+                print(f"Execution with subset of {less} indicators.")
+            except:
+                less = "all"
+                print("Execution with all parameters.")
 
-    retriever = createRetriever(report, chunk_size, chunk_overlap, top_k)
-    basic_info, response_text = basicInformation(retriever, model)
-    year_info = yearInformation(retriever, model)
-    response_text["YEAR"] = year_info["YEAR"]
-    response_text["REPORT_NAME"] = report
-    print(response_text)
+            retriever = createRetriever(report_set, chunk_size, chunk_overlap, top_k)
+            basic_info, response_text = basicInformation(retriever, model)
+            year_info = yearInformation(retriever, model)
+            response_text["YEAR"] = year_info["YEAR"]
+            response_text["REPORT_NAME"] = excel_sets[i]
+            print(response_text)
 
-    prompts, questions = createPrompts(retriever, model, basic_info, answer_length, masterfile)
+            prompts, questions = createPrompts(retriever, model, basic_info, answer_length, masterfile)
 
-    answers = createAnswers(prompts, model)
+            answers = createAnswers(prompts, model)
 
-    excels_path = f"Excel_Output_{model}"
-    if not os.path.exists(excels_path):
-        print("create excel output path")
-        os.makedirs(excels_path)
-    option = f"_topk{top_k}_params{less}"
-    path_excel = outputExcel(answers, questions, prompts, report, masterfile, model, option, excels_path)
+            excels_path = f"Excel_Output_{model.split(":")[0]}"
+            if not os.path.exists(excels_path):
+                print("create excel output path")
+                os.makedirs(excels_path)
+            option = f"_topk{top_k}_params{less}"
+            path_excel = outputExcel(answers, questions, prompts, excel_sets[i], masterfile, model, option, excels_path)
+            print(f"excel was written to {path_excel}")
 
 asyncio.run(main())
