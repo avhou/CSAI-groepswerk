@@ -22,12 +22,36 @@
 \maketitle
 
 \section{Introduction}
-provide a short introduction into the context of the topic and the topic selected integrating the following elements
+This report details the step taken by Arne Lescrauwaet (852617312), Joachim Verschelde (852594432), Alexander Van Hecke (852631385) and Farid Rasoolzadeh Baghmisheh (TODO) for the assignment of the 2023/2024 Capita Selecta in Artificial Intelligence course organised by the Open University (\cite{ou}).
+
+For this assignment we decided to expand on the experiments described in \cite{durability}.
+In this paper, the authors investigate the use of an LLM model and a RAG setup \cite{rag} to asses company durability disclosures.
+They investigate climate transition disclosures by examining the published sustainability reports of carbon-intensive companies.
+A set of 64 indicators (questions) was gathered that investigated measures already taken or yet to be taken.
+For each question, relevant passages in the published sustainability reports were retrieved and passed as additional context to the GPT-4 model.
+Their main conclusions were :
+
 \begin{itemize}
-    \item Name of student and student ID.
-    \item Topic selected.
-    \item Relation between the article(s) studied and the cluster selected.
+    \item Companies more often disclose information about measures yet to be taken (``Talk'' measures) than about measures that were already taken (``Walk'' measures).
+    \item The RAG setup was judged by human experts and found to be mostly positive.
+    \item An automated tool as developed by the authors can be a help to human experts, but are no replacements for human experts.
 \end{itemize}
+
+In this research, we want to expand on \cite{durability} in the following ways :
+
+\begin{itemize}
+    \item We examine data published by the fast fashion industry instead of carbon-intensive companies.
+    \item We evaluate and compare several freely available LLM models instead of using one commercial LLM model.
+    \item We evaluate additional indicators provided by dr. ir. Clara Maathuis of Open University \cite{ou}.
+\end{itemize}
+
+This research is related to the \textbf{text} cluster of the course \cite{ou}.
+The text cluster introduces a number of techniques to improve the performance of LLM models for certain tasks.
+One of the techniques discussed is RAG, first introduced in \cite{rag}.
+RAG adds context when querying LLM models, allowing the model to get a better semantic understanding of the question and to generate a more relevant answer.
+The main strenghts of a RAG based setup are \textbf{i)} the ability to access up-to-date information (no cutoff), \textbf{ii)} the ability to add domain specific knowledge, \textbf{iii)} efficiency, as the parameteric memory does not need to contain all knowledge and no retraining or fine-tuning is necessary, \textbf{iv)} the ability to generate more specific, more diverse and more factual answers and \textbf{v)} the scalability of the approach.
+The main disadvantages of a RAG based setup are \textbf{i)} context limits of LLMs model limit how much additional information can be passed, \textbf{ii)} the performance of the retriever as the weakest link in the setup, \textbf{iii)} the additional latency and complexity introduced, \textbf{iv)} the need to keep the knowledge base up-to-date.
+Evaluation of climate transition disclosures presents an excellent concrete use case of RAG.
 
 \section{Goal}
 discuss the objective of this project split it into multiple smaller objectives that will be tackled in this project
@@ -37,7 +61,6 @@ discuss the objective of this project split it into multiple smaller objectives 
 \end{itemize}
 
 \section{Data analysis}
-
 describe the dataset used considering entities such as features and target, and discuss processing and cleaning aspects like duplicates and outliers
 \begin{itemize}
     \item Dataset description
