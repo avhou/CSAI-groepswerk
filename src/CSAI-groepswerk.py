@@ -247,7 +247,7 @@ async def main():
 
             answers = createAnswers(prompts, model)
 
-            excels_path = f"Excel_Output_{model.split(":")[0]}"
+            excels_path = f"Excel_Output_{model.split(':')[0]}"
             if not os.path.exists(excels_path):
                 print("create excel output path")
                 os.makedirs(excels_path)
