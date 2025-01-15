@@ -6,6 +6,8 @@
 \usepackage{booktabs}
 \usepackage{subcaption}
 \usepackage{wrapfig}
+\usepackage{float}
+
 \graphicspath{ {./figures/} }
 \usepackage{geometry}
 \geometry{a4paper, portrait}
@@ -115,14 +117,61 @@ We retrieve the 8 most relevant chunks as additional context for each question.
 
 \section{Evaluation and Results} \label{sec:evaluation}
 
-\begin{quotation}
-    discuss the evaluation method and criteria used, and interpret the results obtained considering both technical and ethical aspects (norms and values)
-    \begin{itemize}
-        \item Evaluation mechanism discussion and evaluation criteria selected
-        \item Results description using different data visualization methods.
-        \item Interpretation of the results obtained and positioning in the field considering both relevant technical and ethical aspects
-    \end{itemize}
-\end{quotation}
+% \begin{quotation}
+%     discuss the evaluation method and criteria used, and interpret the results obtained considering both technical and ethical aspects (norms and values)
+%     \begin{itemize}
+%         \item Evaluation mechanism discussion and evaluation criteria selected
+%         \item Results description using different data visualization methods.
+%         \item Interpretation of the results obtained and positioning in the field considering both relevant technical and ethical aspects
+%     \end{itemize}
+% \end{quotation}
+\subsection{Quantitative Analysis}
+In this section, we present an analysis of the results obtained from our four models across the Zara and H$\&$M reports. 
+The discussion is structured as follows: first, we address the issue of unanswered questions, followed by an evaluation of the decision-making processes, a review of the cited source pages, and finally, an analysis of the disclosed indicators.
+\subsubsection{Zara}
+\textbf{Missing Data:} An analysis of missing responses reveals that both the Llama3 and Mistral models failed to answer six questions each. 
+All models exhibited issues with citing source pages. 
+The Llama3 model performed the best in this regard, with only six missing citations, 
+while the Llama2 model failed to provide any source page citations. The Mistral model was similar to Llama3, 
+with eight missing source page citations. In contrast, the Phi3 model demonstrated significant shortcomings, 
+failing to cite source pages for 41 entries.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{./images/Missing_Values.png}
+    \caption{Comparison of Missing Values Across Models}
+    \label{fig:image_label}
+\end{figure}
+
+\textbf{Decision Metrics:} The first notable observation in the analysis of decisions pertains to the Llama2 model, 
+which consistently answered "yes" to all questions. In contrast, 
+the Mistral model displayed an approximately balanced response rate, with nearly 50\% of 
+answers being "yes" and 50\% being "no." The Llama3 and Phi3 models produced more realistic outcomes, 
+as both provided a higher proportion of "no" responses compared to "yes." Among these, 
+the Mistral model exhibited a slight preference for "no" responses over the Llama3 model.
+\newline\newline
+An analysis of the missing decision entries for the Llama3 and Mistral models reveals the following patterns: 
+in the case of the Llama3 model, three missing decisions are from the "target" category, 
+two from the "strategy" category, and one from the "tracking" category. \newline
+For the Mistral model, both the "strategy" and "tracking" categories have two missing entries each,
+while the "target" and "governance" categories have one missing entry each. Notably, 
+both models failed to provide an answer for question 36.
+\newline\newline
+\textbf{Source Page Metrics:} The majority of questions with missing source pages from the Llama3, Mistral, and Phi3 models 
+fall within the "strategy" and "tracking" categories. 
+Both the Llama3 and Mistral models fail to cite source pages for question 36. 
+Additionally, Llama3 and Phi3 fail to provide source pages for questions 9, 19, 62, and 49, 
+while Mistral and Phi3 fail to cite source pages for questions 34, 50, 37, and 63. Notably, 
+there is no question for which all three models fail to provide a source page.
+\newline\newline
+\textbf{Disclosed indicators:} When comparing the "yes"-"no" counts of each model across different categories, 
+the counts for Llama3 and Phi3 appear to be quite similar overall. However, 
+a closer analysis of their counts within subcategories reveals subtle differences, 
+particularly in the allocation of "yes" votes, 
+while the "no" votes remain relatively consistent between the two models.
+
+\subsubsection{H$\&$M}
+
 
 \section{Conclusions and Discussion} \label{sec:conclusions}
 
