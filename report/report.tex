@@ -171,6 +171,52 @@ particularly in the allocation of "yes" votes,
 while the "no" votes remain relatively consistent between the two models.
 
 \subsubsection{H$\&$M}
+\textbf{Missing Data:} An analysis of the H$\&$M missing responses shows that the Mistral model failed to answer 
+five questions. Similar to the Zara report, 
+all models struggled with citing source pages. 
+The Llama3 model remained the best-performing in this aspect, with only three missing citations, 
+while the Llama2 model once again failed to provide any source page citations. 
+The Mistral model performed worse compared to the Zara report, 
+with seven missing citations this time. 
+The Phi3 model also showed a slight decline, failing to cite source pages for 43 entries.
+\newline\newline
+
+\textbf{Decision Metrics:}
+Once again, the Llama2 model exclusively answered "yes," 
+while the Mistral model maintained an approximately 50\% "yes"-"no" response rate. 
+The Llama3 and Phi3 models exhibited response ratios similar to those observed in the Zara report. 
+As before, the "target" category accounted for the highest number of missing decisions.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{./images/hm_comparison_decision.jpg}
+    \caption{Comparison of Decision Counts Across Models}
+    \label{fig:image_label}
+\end{figure}
+
+\textbf{Source Page Metrics:} The majority of questions with missing source pages from the Llama3, Mistral, 
+and Phi3 models once again fall within the "strategy" and 
+"tracking" categories. This time, the Llama3 and Mistral models do not have any overlap in their 
+missing source pages. Both Llama3 and Phi3 fail to cite sources for questions 26 and 32, 
+while Mistral and Phi3 fail to cite sources for questions 1, 10, 35, and 37. 
+Notably, there is still no question for which all three models failed to provide a source page.
+\newline\newline
+
+\textbf{Disclosed indicators:} When comparing the "yes"-"no" counts of each model across different categories, 
+the counts for Llama3 and Phi3 once again appear to be quite similar overall. However, 
+a closer examination within subcategories reveals more pronounced differences compared to the Zara report. 
+Meanwhile, the Mistral model continues to maintain an approximately 50-50 response rate across all categories.
+
+\subsubsection{Conclusion}
+Based on these quantitative evaluations we can conclude that all models face challenges in citing source pages, 
+with Llama3 emerging as the most reliable in this aspect, and the persistent shortcomings of Llama2 in 
+providing citations. Decision-making patterns highlighted distinct behaviors across models, 
+with Llama2 consistently answering "yes," Mistral maintaining a balanced response ratio, 
+and Llama3 and Phi3 demonstrating realistic response distributions. 
+The "target" category repeatedly accounted for the highest number of missing decisions, 
+and missing source pages were concentrated in the "strategy" and "tracking" categories. 
+Despite these challenges, no single question was uniformly problematic across all models, 
+underscoring the variability in model performance.
 
 
 \section{Conclusions and Discussion} \label{sec:conclusions}
