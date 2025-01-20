@@ -139,7 +139,6 @@ def createAnswers(prompts: Collection[str], model: str) -> Collection[Completion
         response = llm.complete(p)
         print(f"qa response : {response.text}")
         answers.append(response)
-        break
 
     print("Answers Given")
     return answers
@@ -215,8 +214,7 @@ async def evaluate_faithfulness(evaluating_llm_name: str, queries: Collection[st
     
     for index, _ in enumerate(answers):
         query, answer, references = queries[index], answers[index], references_per_query[index]
-        print(f"query: {query}, context: {references} response: {answer.text}")
-        evaluation_result = await evaluator.aevaluate_response(query=query, response_str=answer.text, contexts=references)
+        evaluation_result = await evaluator.aevaluate(query=query, response=answer.text, contexts=references)
         print(f"query: {query}, context: {references} response: {answer.text}, pass: {evaluation_result.score} feedback: {evaluation_result.feedback}")
         results.append(evaluation_result)
 
