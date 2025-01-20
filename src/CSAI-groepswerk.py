@@ -3,13 +3,15 @@ from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.llms.ollama import Ollama
-from llama_index.core import StorageContext
-from llama_index.core import load_index_from_storage
+from llama_index.core.llms import CompletionResponse
+from llama_index.core.evaluation import FaithfulnessEvaluator
+from llama_index.core.schema import NodeWithScore
 from promt_reader import *
 import logging
 import sys
 from tqdm import tqdm
 from models import *
+from typing import Collection, Dict, Union
 
 import numpy as np
 import pandas as pd
@@ -18,9 +20,8 @@ import json
 import asyncio
 import os
 
-
 # function that takes the report and creates the retriever (with indexes etc.)
-def createRetriever(report: List[str], chunk_size: int, chunk_overlap: int, top_k: int) -> VectorIndexRetriever:
+def createRetriever(report: Collection[str], chunk_size: int, chunk_overlap: int, top_k: int) -> VectorIndexRetriever:
     # load in document
     documents = SimpleDirectoryReader(input_files=report).load_data()
     parser = SentenceSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)  # tries to keep sentences together
@@ -98,10 +99,7 @@ def yearInformation(retriever: VectorIndexRetriever, model: str):
     print(f"year response : {response_json}")
     return response_json
 
-
-def createPromptTemplate(retriever: VectorIndexRetriever, model: str, basic_info: str, query_str: str, explanation: str, answer_length: int) -> str:
-    # Query content
-    retrieved_nodes = retriever.retrieve(query_str)
+def createPromptTemplate(retrieved_nodes: List[NodeWithScore], model: str, basic_info: str, query_str: str, explanation: str, answer_length: int) -> str:
     # create the "sources" block
     sources = []
     for i in retrieved_nodes:
@@ -121,23 +119,27 @@ def createPromptTemplate(retriever: VectorIndexRetriever, model: str, basic_info
 
 def createPrompts(retriever: VectorIndexRetriever, model: str, basic_info: str, answer_length: int, masterfile):
     prompts = []
+    contexts = []
     questions = []
     for i in np.arange(0, masterfile.shape[0]):
         query_str = masterfile.iloc[i]["question"]
         questions.append(query_str)
         explanation = masterfile.iloc[i]["question definitions"]
+        retrieved_nodes = retriever.retrieve(query_str)
+        contexts.append([node.get_content().replace("\n", "") for node in retrieved_nodes])
         prompts.append(
-            createPromptTemplate(retriever, model, basic_info, query_str, explanation, answer_length))
+            createPromptTemplate(retrieved_nodes, model, basic_info, query_str, explanation, answer_length))
     print("Prompts Created")
-    return prompts, questions
+    return prompts, questions, contexts
 
-def createAnswers(prompts: List[str], model: str) -> List[str]:
+def createAnswers(prompts: Collection[str], model: str) -> Collection[CompletionResponse]:
     answers = []
     llm = Ollama(temperature=0, model=model, request_timeout=120.0, json_mode=True, duration=-1, context_size=4096)
     for p in tqdm(prompts):
         response = llm.complete(p)
         print(f"qa response : {response.text}")
         answers.append(response)
+        break
 
     print("Answers Given")
     return answers
@@ -198,6 +200,29 @@ def outputExcel(answers, questions, prompts, report, masterfile, model, option="
     df_out.to_excel(excel_path_qa)
     return excel_path_qa
 
+async def evaluate_model(evaluating_llm_name: str, queries: Collection[str], references_per_query: Collection[str], answers: Collection[str]):
+    metrics = {}
+    metrics["Faitfulness"] = await evaluate_faithfulness(evaluating_llm_name,queries, references_per_query, answers)
+    return metrics
+
+
+async def evaluate_faithfulness(evaluating_llm_name: str, queries: Collection[str], references_per_query: Collection[str], answers: Collection[CompletionResponse]):
+    results = []
+    print(evaluating_llm_name)
+    evaluating_llm = Ollama(temperature=0, model=evaluating_llm_name, request_timeout=120.0, duration=-1, context_size=4096)
+
+    evaluator = FaithfulnessEvaluator(llm=evaluating_llm)
+    
+    for index, _ in enumerate(answers):
+        query, answer, references = queries[index], answers[index], references_per_query[index]
+        print(f"query: {query}, context: {references} response: {answer.text}")
+        evaluation_result = await evaluator.aevaluate_response(query=query, response_str=answer.text, contexts=references)
+        print(f"query: {query}, context: {references} response: {answer.text}, pass: {evaluation_result.score} feedback: {evaluation_result.feedback}")
+        results.append(evaluation_result)
+
+    return results 
+
+
 async def main():
     # logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     # logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
@@ -206,6 +231,7 @@ async def main():
     chunk_overlap = 50
     top_k = 8
     answer_length = 200
+    evaluating_llm_name = "llama3:instruct"
 
     report_sets = [
         ["../data/CSAI-reports/Zara_Financial_Sustainability_Report_2023.pdf"],
@@ -243,16 +269,18 @@ async def main():
             response_text["REPORT_NAME"] = excel_sets[i]
             print(response_text)
 
-            prompts, questions = createPrompts(retriever, model, basic_info, answer_length, masterfile)
+            prompts, queries, references_per_query = createPrompts(retriever, model, basic_info, answer_length, masterfile)
 
             answers = createAnswers(prompts, model)
+
+            evaluation_metrics = await evaluate_model(evaluating_llm_name, queries, references_per_query, answers)
 
             excels_path = f"Excel_Output_{model.split(':')[0]}"
             if not os.path.exists(excels_path):
                 print("create excel output path")
                 os.makedirs(excels_path)
             option = f"_topk{top_k}_params{less}"
-            path_excel = outputExcel(answers, questions, prompts, excel_sets[i], masterfile, model, option, excels_path)
+            path_excel = outputExcel(answers, queries, prompts, excel_sets[i], masterfile, model, option, excels_path)
             print(f"excel was written to {path_excel}")
 
 asyncio.run(main())
