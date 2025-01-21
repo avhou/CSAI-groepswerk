@@ -241,6 +241,8 @@ async def evaluate_context_relevancy(evaluating_llm_name: str, queries: Collecti
         print(f"query: {query}, context: {references} response: {answer.text}, pass: {evaluation_result.score} feedback: {evaluation_result.feedback}")
         results.append(evaluation_result)
 
+    return results 
+
 async def main():
     # logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     # logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
