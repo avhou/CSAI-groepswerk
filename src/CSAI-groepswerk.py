@@ -4,14 +4,14 @@ from llama_index.core.node_parser import SentenceSplitter
 from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.llms.ollama import Ollama
 from llama_index.core.llms import CompletionResponse
-from llama_index.core.evaluation import FaithfulnessEvaluator
+from llama_index.core.evaluation import FaithfulnessEvaluator, ContextRelevancyEvaluator, EvaluationResult
 from llama_index.core.schema import NodeWithScore
 from promt_reader import *
 import logging
 import sys
 from tqdm import tqdm
 from models import *
-from typing import Collection, Dict, Union
+from typing import Collection, Dict
 
 import numpy as np
 import pandas as pd
@@ -144,7 +144,7 @@ def createAnswers(prompts: Collection[str], model: str) -> Collection[Completion
     return answers
 
 
-def outputExcel(answers, questions, prompts, report, masterfile, model, option="", excels_path="Excels_SustReps"):
+def outputExcel(answers, questions, prompts, report, masterfile, model, evaluation_metrics: Dict[str, Collection[EvaluationResult]], option="", excels_path="Excels_SustReps"):
     # create the columns
     categories, ans, ans_verdicts, source_pages, source_texts = [], [], [], [], []
     subcategories = [i.split("_")[1] for i in masterfile.identifier.to_list()]
@@ -191,23 +191,32 @@ def outputExcel(answers, questions, prompts, report, masterfile, model, option="
         categories.append(category)
 
     # create DataFrame and export as excel
-    df_out = pd.DataFrame(
-        {"category": categories, "subcategory": subcategories, "question": questions, "decision": ans_verdicts,
-         "answer": ans,
-         "source_pages": source_pages, "source_texts": source_texts})
+    df_out = pd.DataFrame({
+        "category": categories,
+        "subcategory": subcategories,
+        "question": questions,
+        "decision": ans_verdicts,
+        "answer": ans,
+        "source_pages": source_pages,
+        "source_texts": source_texts,
+        "faithfulness_score": [result.score for result in evaluation_metrics["Faithfulness"]],
+        "faithfulness_feedback": [result.feedback for result in evaluation_metrics["Faithfulness"]],
+        "context_relevancy_score": [result.score for result in evaluation_metrics["Context_relevancy"]],
+        "context_relevancy_feedback": [result.feedback for result in evaluation_metrics["Context_relevancy"]]
+        })
     excel_path_qa = f"./{excels_path}/" + report.split("/")[-1].split(".")[0] + f"_{model}" + f"{option}" + ".xlsx"
     df_out.to_excel(excel_path_qa)
     return excel_path_qa
 
 async def evaluate_model(evaluating_llm_name: str, queries: Collection[str], references_per_query: Collection[str], answers: Collection[str]):
     metrics = {}
-    metrics["Faitfulness"] = await evaluate_faithfulness(evaluating_llm_name,queries, references_per_query, answers)
+    metrics["Faithfulness"] = await evaluate_faithfulness(evaluating_llm_name,queries, references_per_query, answers)
+    metrics["Context_relevancy"] = await evaluate_context_relevancy(evaluating_llm_name,queries, references_per_query, answers)
     return metrics
 
 
 async def evaluate_faithfulness(evaluating_llm_name: str, queries: Collection[str], references_per_query: Collection[str], answers: Collection[CompletionResponse]):
     results = []
-    print(evaluating_llm_name)
     evaluating_llm = Ollama(temperature=0, model=evaluating_llm_name, request_timeout=120.0, duration=-1, context_size=4096)
 
     evaluator = FaithfulnessEvaluator(llm=evaluating_llm)
@@ -220,6 +229,17 @@ async def evaluate_faithfulness(evaluating_llm_name: str, queries: Collection[st
 
     return results 
 
+async def evaluate_context_relevancy(evaluating_llm_name: str, queries: Collection[str], references_per_query: Collection[str], answers: Collection[CompletionResponse]):
+    results = []
+    evaluating_llm = Ollama(temperature=0, model=evaluating_llm_name, request_timeout=120.0, duration=-1, context_size=4096)
+
+    evaluator = ContextRelevancyEvaluator(llm=evaluating_llm)
+    
+    for index, _ in enumerate(answers):
+        query, answer, references = queries[index], answers[index], references_per_query[index]
+        evaluation_result = await evaluator.aevaluate(query=query, response=answer.text, contexts=references)
+        print(f"query: {query}, context: {references} response: {answer.text}, pass: {evaluation_result.score} feedback: {evaluation_result.feedback}")
+        results.append(evaluation_result)
 
 async def main():
     # logging.basicConfig(stream=sys.stdout, level=logging.INFO)
@@ -278,7 +298,7 @@ async def main():
                 print("create excel output path")
                 os.makedirs(excels_path)
             option = f"_topk{top_k}_params{less}"
-            path_excel = outputExcel(answers, queries, prompts, excel_sets[i], masterfile, model, option, excels_path)
+            path_excel = outputExcel(answers, queries, prompts, excel_sets[i], masterfile, model, evaluation_metrics, option, excels_path)
             print(f"excel was written to {path_excel}")
 
 asyncio.run(main())
