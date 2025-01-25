@@ -57,14 +57,6 @@ Evaluation of climate transition disclosures presents an excellent concrete use 
 
 \section{Goal} \label{sec:goal}
 
-\begin{quotation}
-    discuss the objective of this project split it into multiple smaller objectives that will be tackled in this project
-    \begin{itemize}
-        \item Main goal
-        \item Smaller objectives and report outline
-    \end{itemize}
-\end{quotation}
-
 The goal of this assignment is to expand on the RAG setup introduced in \cite{durability}, by using different data, different LLM models and additional metrics.
 
 Instead of focusing on carbon-intensive industry, we want to examine sustainability reports published by fast fashion companies.
@@ -87,16 +79,6 @@ Finally, we summarize the approach and provide conclusions in section \ref{sec:c
 
 \section{Data analysis} \label{sec:data analysis}
 
-\begin{quotation}
-    describe the dataset used considering entities such as features and target, and discuss processing and cleaning aspects like duplicates and outliers
-    \begin{itemize}
-        \item Dataset description
-        \item Data processing
-        \item Data cleaning
-        \item Data visualization and interpretation
-    \end{itemize}
-\end{quotation}
-
 For this assignment, we investigate the 2023 sustainability reports of two fast-fashion companies (\textbf{H\&M} and \textbf{Zara}).
 There reports are publicly available in PDF format.
 Since we use the \texttt{llama\_index} python package to extract the text from the PDF files, no additional data processing or cleaning is necessary.
@@ -106,27 +88,62 @@ We retrieve the 8 most relevant chunks as additional context for each question.
 
 \section{Methodology and Implementation} \label{sec:methodology}
 
-\begin{quotation}
-    describe the followed methodological approach and discuss important implementation choices providing concrete examples
-    \begin{itemize}
-        \item Research Methodology discussion
-        \item Design elaboration
-        \item Implementation choices discussion
-    \end{itemize}
-\end{quotation}
+\subsection{Methodology}
+
+As described in section \ref{sec:goal}, in this research we want to \textbf{(i)} use sustainability reports published by the fast fashion industry instead of the carbon-intensive industry, \textbf{(ii)} evaluate several LLM models instead of relying on ChatGPT alone, \textbf{(iii)} evaluate two additional scenarios containing questions that are focused more on greenwashing and \textbf{(iv)} compute a number of metrics to measure things like coherence and consistency.
+
+We selected 4 publicly available Ollama LLMs models : \texttt{llama2}, \texttt{llama3:instruct}, \texttt{mistral} and \texttt{phi3:14b-instruct}.
+Custom prompts were written for each model to accommodate for the difference in reasoning skills and the capability to return structured outputs.
+
+The 2023 sustainability reports of two fast-fashion companies (\textbf{H\&M} and \textbf{Zara}) were selected as dataset.
+In addition to the 64 indicators identified in \cite{durability}, dr. ir. Clara Maathuis of Open University \cite{ou} provided 16 additional questions, grouped in two scenarios.
+The first scenario consists of 10 questions and assesses if a company shows signs potential signs of involvement or engagement with greenwashing methods and practices.
+The second scenario consists of 6 questions and tries to come up with greenwashing mitigation strategies when it is determined a company uses greenwashing methods and practices.
+These are useful for stakeholders (such as investors, regulators, etc) related to the fast fashion company.
+
+Because we use different data and different models, no ground truths or labels were available, neither for the original 64 indicators nor for the 16 additional scenario questions.
+We considered two options : \textbf{(i)} establish ground truth ourselves and \textbf{(ii)} letting a sufficiently sophisticated LLM model establish ground truth.
+Given that none of the team members possess domain expertise, we opted against the first approach.
+Instead, we selected the second option, utilizing ChatGPT to determine the ground truth for all questions.
+It is important to acknowledge that this decision implies we accept any inherent biases within ChatGPT and we adopt its judgments as the standard for evaluation.
+
+For each of the investigated companies, we iterate over the selected LLM models, then iterate over the hyperparameters, select the correct prompt and send the 64 (original indicators) + 16 (additional scenarios) questions to the LLM model.
+All answers are stored for further statistical analysis.
+Finally, relevant metrics for each combination of company, LLM model and hyperparameter selection are calculcated.
+
+\begin{itemize}
+    \item TODO TODO welke hyperparameters @Arne (?)
+    \item TODO TODO welke metrieken @Joachim
+    \item TODO TODO welke versie van ChatGPT is er exact gebruikt voor ground truth @Farid
+\end{itemize}
+
+
+\subsection{Implementation}
+
+We build on the implementation of \cite{durability}, available on Github (\cite{github-orig}).
+The authors use \texttt{llama\_index}, a Python framework that hides the details of accessing different LLM models.
+This allows for code that uses different LLM models with only minor changes.
+Processing unstructured data such as PDF documents is available out of the box.
+It also provides support for building RAG solutions, as a vector store (configured by a number of hyperparameters) and document retrieval are available.
+
+We made several changes to the original code of \cite{durability}.
+
+\textbf{First}, the authors used ChatGPT, which is a cloud hosted LLM model.
+Since we wanted to evaluate the performance of some of the publicly available LLM models, we decided to host these models ourselves using \href{https://ollama.com/}{Ollama}.
+\texttt{Ollama} provides a REST interface to query models, and integration with \texttt{llama\_index} is available.
+It also allows to force LLM models to generate structured output in JSON format, which greatly helped evaluate performance of the different models.
+\textbf{Second}, instead of using a single prompt for all LLM models, we created separate prompt per model.
+This was needed as the models used have different reasoning capabilities and some need more directions to generate structured output.
+As in the original paper, we created separate prompts to extract the general info, the year info and the answers to the questions.
+\textbf{Third}, the code was modified to loop over all available datasets, models, and hyperparameter settings.
+\textbf{Finally}, code to calculate performance statistics and metrics was added.
+This was not present in \cite{durability} as their analysis was mostly qualitative.
+
+Our implementation is available on github (\cite{github}).
 
 \section{Evaluation and Results} \label{sec:evaluation}
 
-% \begin{quotation}
-%     discuss the evaluation method and criteria used, and interpret the results obtained considering both technical and ethical aspects (norms and values)
-%     \begin{itemize}
-%         \item Evaluation mechanism discussion and evaluation criteria selected
-%         \item Results description using different data visualization methods.
-%         \item Interpretation of the results obtained and positioning in the field considering both relevant technical and ethical aspects
-%     \end{itemize}
-% \end{quotation}
-\subsection{Quantitative Analysis}
-In this section, we present an analysis of the results obtained from our four models across the Zara and H$\&$M reports. 
+\subsection{Quantitative Analysis}In this section, we present an analysis of the results obtained from our four models across the Zara and H$\&$M reports.
 The discussion is structured as follows: first, we address the issue of unanswered questions, followed by an evaluation of the decision-making processes, a review of the cited source pages, and finally, an analysis of the disclosed indicators.
 \subsubsection{Zara}
 \textbf{Missing Data:} An analysis of missing responses reveals that both the Llama3 and Mistral models failed to answer six questions each. 
@@ -218,6 +235,22 @@ and missing source pages were concentrated in the "strategy" and "tracking" cate
 Despite these challenges, no single question was uniformly problematic across all models, 
 underscoring the variability in model performance.
 
+\subsection{Ethical considerations}
+
+In this section, we discuss some ethical considerations.
+In the setup we used, we ask LLM models to judge whether questions are true or false, and to provide argumentation about the decision made.
+In the argumentation, the LLM model must refer to the source chunks that were used to base the decision on.
+Therefore, this solution is reasonably \textbf{transparant} and \textbf{explainable}, as it provides insight in how a decision was made by quoting the relevant information.
+However, this does not necessarily imply \textbf{trustworthiness}.
+The authors of \cite{durability} warned that the RAG solution could generate valuable output but should not be seen as a replacement for human experts.
+Furthermore, as we are comparing the answers to ground truth values produced by ChatGPT, we can only have faith in the produced answers and metrics if we trust the ground truths to be accurate.
+There is a degree of \textbf{input bias} in our experiments.
+Companies have a vested interest in publishing optimistic and forward-looking sustainability reports.
+In other words, the reports used to provide argumentation to the questions answered, are not necessarily objective.
+Furthermore, since ChatGPT was used to establish ground truths for the questions, any and all biases present in that model would leak in the performance metrics.
+Finally, \textbf{regulation} is important in this context as well.
+On the one hand, there is already regulation requiring companies to publish sustainability reports.
+On the other hand, more regulation could be necessary to assure the reports are trustworthy and legally binding.
 
 \section{Conclusions and Discussion} \label{sec:conclusions}
 
