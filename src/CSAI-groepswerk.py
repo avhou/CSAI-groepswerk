@@ -4,14 +4,16 @@ from llama_index.core.node_parser import SentenceSplitter
 from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.llms.ollama import Ollama
 from llama_index.core.llms import CompletionResponse
-from llama_index.core.evaluation import FaithfulnessEvaluator, ContextRelevancyEvaluator, EvaluationResult
+from llama_index.core.evaluation import FaithfulnessEvaluator, ContextRelevancyEvaluator, CorrectnessEvaluator, SemanticSimilarityEvaluator, GuidelineEvaluator, EvaluationResult
 from llama_index.core.schema import NodeWithScore
 from promt_reader import *
 import logging
 import sys
+import csv
+
 from tqdm import tqdm
 from models import *
-from typing import Collection, Dict
+from typing import Collection, Dict, Optional
 
 import numpy as np
 import pandas as pd
@@ -21,15 +23,13 @@ import asyncio
 import os
 
 # function that takes the report and creates the retriever (with indexes etc.)
-def createRetriever(report: Collection[str], chunk_size: int, chunk_overlap: int, top_k: int) -> VectorIndexRetriever:
+def create_retriever(report: Collection[str], chunk_size: int, chunk_overlap: int, top_k: int) -> VectorIndexRetriever:
     # load in document
     documents = SimpleDirectoryReader(input_files=report).load_data()
     parser = SentenceSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)  # tries to keep sentences together
     nodes = parser.get_nodes_from_documents(documents)
 
-
     # build indexes
-    print(f"creating embedding model")
     embed_model = OllamaEmbedding(model_name="nomic-embed-text", base_url="http://localhost:11434")
     index = VectorStoreIndex(
         nodes,
@@ -38,7 +38,6 @@ def createRetriever(report: Collection[str], chunk_size: int, chunk_overlap: int
     )
 
     # configure retriever
-    print(f"creating retriever")
     retriever = VectorIndexRetriever(
         index=index,
         similarity_top_k=top_k,
@@ -46,7 +45,7 @@ def createRetriever(report: Collection[str], chunk_size: int, chunk_overlap: int
     return retriever
 
 
-def basicInformation(retriever: VectorIndexRetriever, model: str):
+def basic_information(retriever: VectorIndexRetriever, model: str):
     # Query content
     retrieved_nodes = retriever.retrieve(
         "What is the name of the company, the sector it operates in and location of headquarters?")
@@ -59,24 +58,17 @@ def basicInformation(retriever: VectorIndexRetriever, model: str):
         sources.append(f"PAGE {page_num}: {source}")
     sources_block = "\n\n\n".join(sources)
 
-    print(f"sources block has length {len(sources)}")
-
     json_schema = str(GeneralInfoQueryResponse.model_json_schema())
-    print(f"general info schema : {json_schema}")
-
     prompt = read_general_prompt(model, sources_block, json_schema)
 
     response = Ollama(temperature=0, model=model, request_timeout=120.0, json_mode=True, duration=-1, context_size=4096).complete(prompt)
 
     response_json = json.loads(response.text)
-    print(f"basic info response : {response_json}")
     # create textual representation
     basic_info = f" - Company name: {response_json['COMPANY_NAME']}\n - Industry: {response_json['COMPANY_SECTOR']}\n - Headquarter Location: {response_json['COMPANY_LOCATION']}"
-    print(f"basic info text : {basic_info}")
-
     return basic_info, response_json
 
-def yearInformation(retriever: VectorIndexRetriever, model: str):
+def year_information(retriever: VectorIndexRetriever, model: str):
     # Query content
     retrieved_nodes = retriever.retrieve(
         "In which year.txt was the report published?")
@@ -90,16 +82,13 @@ def yearInformation(retriever: VectorIndexRetriever, model: str):
     sources_block = "\n\n\n".join(sources)
 
     json_schema = str(YearQueryResponse.model_json_schema())
-    print(f"year schema : {json_schema}")
-
     prompt = read_year_prompt(model, sources_block, json_schema)
 
     response = Ollama(temperature=0, model=model, request_timeout=120.0, json_mode=True, duration=-1, context_size=4096).complete(prompt)
     response_json = json.loads(response.text)
-    print(f"year response : {response_json}")
     return response_json
 
-def createPromptTemplate(retrieved_nodes: List[NodeWithScore], model: str, basic_info: str, query_str: str, explanation: str, answer_length: int) -> str:
+def create_prompt_template(retrieved_nodes: List[NodeWithScore], model: str, basic_info: str, query_str: str, explanation: str, answer_length: int) -> str:
     # create the "sources" block
     sources = []
     for i in retrieved_nodes:
@@ -110,41 +99,37 @@ def createPromptTemplate(retrieved_nodes: List[NodeWithScore], model: str, basic
     sources_block = "\n\n\n".join(sources)
 
     json_schema = str(QueryResponse.model_json_schema())
-    print(f"qa schema : {json_schema}")
 
     prompt = read_qa_prompt(model, basic_info, sources_block, query_str, explanation, answer_length, json_schema)
 
     return prompt
 
 
-def createPrompts(retriever: VectorIndexRetriever, model: str, basic_info: str, answer_length: int, masterfile):
+def create_prompts(retriever: VectorIndexRetriever, model: str, basic_info: str, answer_length: int, masterfile):
     prompts = []
     contexts = []
     questions = []
-    for i in np.arange(0, masterfile.shape[0]):
+    for i in tqdm(np.arange(0, masterfile.shape[0]),desc="Retrieving prompts"):
         query_str = masterfile.iloc[i]["question"]
         questions.append(query_str)
         explanation = masterfile.iloc[i]["question definitions"]
         retrieved_nodes = retriever.retrieve(query_str)
         contexts.append([node.get_content().replace("\n", "") for node in retrieved_nodes])
         prompts.append(
-            createPromptTemplate(retrieved_nodes, model, basic_info, query_str, explanation, answer_length))
-    print("Prompts Created")
+            create_prompt_template(retrieved_nodes, model, basic_info, query_str, explanation, answer_length))
     return prompts, questions, contexts
 
-def createAnswers(prompts: Collection[str], model: str) -> Collection[CompletionResponse]:
+def create_answers(prompts: Collection[str], model: str) -> Collection[CompletionResponse]:
     answers = []
     llm = Ollama(temperature=0, model=model, request_timeout=120.0, json_mode=True, duration=-1, context_size=4096)
-    for p in tqdm(prompts):
+    for p in tqdm(prompts, desc="Generating responses"):
         response = llm.complete(p)
-        print(f"qa response : {response.text}")
         answers.append(response)
 
-    print("Answers Given")
     return answers
 
 
-def outputExcel(answers, questions, prompts, report, masterfile, model, evaluation_metrics: Dict[str, Collection[EvaluationResult]], option="", excels_path="Excels_SustReps"):
+def output_excel(answers, questions, prompts, report, masterfile, model, evaluation_metrics: Dict[str, Collection[EvaluationResult]], option="", excels_path="Excels_SustReps"):
     # create the columns
     categories, ans, ans_verdicts, source_pages, source_texts = [], [], [], [], []
     subcategories = [i.split("_")[1] for i in masterfile.identifier.to_list()]
@@ -153,7 +138,7 @@ def outputExcel(answers, questions, prompts, report, masterfile, model, evaluati
         try:
             # replace front or back ```json {} ```
             a = a.text.replace("```json", "").replace("```", "")
-            print(f"checking response {a}")
+
             answer_dict = json.loads(a)
             # check for right format
             QueryResponse.model_validate_json(a)
@@ -202,17 +187,49 @@ def outputExcel(answers, questions, prompts, report, masterfile, model, evaluati
         "faithfulness_score": [result.score for result in evaluation_metrics["Faithfulness"]],
         "faithfulness_feedback": [result.feedback for result in evaluation_metrics["Faithfulness"]],
         "context_relevancy_score": [result.score for result in evaluation_metrics["Context_relevancy"]],
-        "context_relevancy_feedback": [result.feedback for result in evaluation_metrics["Context_relevancy"]]
+        "context_relevancy_feedback": [result.feedback for result in evaluation_metrics["Context_relevancy"]],
+        "correctness_score": [result.score for result in evaluation_metrics["Correctness"]],
+        "correctness_feedback": [result.feedback for result in evaluation_metrics["Correctness"]],
+        "semantic_semilarity_score": [result.score for result in evaluation_metrics["Semantic_semilarity"]],
+        "semantic_semilarity_feedback": [result.feedback for result in evaluation_metrics["Semantic_semilarity"]]
         })
     excel_path_qa = f"./{excels_path}/" + report.split("/")[-1].split(".")[0] + f"_{model}" + f"{option}" + ".xlsx"
     df_out.to_excel(excel_path_qa)
     return excel_path_qa
 
-async def evaluate_model(evaluating_llm_name: str, queries: Collection[str], references_per_query: Collection[str], answers: Collection[str]):
+async def evaluate_model(evaluating_llm_name: str, queries: Collection[str], references_per_query: Collection[str], answers: Collection[str], ground_truth_labels: Collection[str]):
     metrics = {}
     metrics["Faithfulness"] = await evaluate_faithfulness(evaluating_llm_name,queries, references_per_query, answers)
     metrics["Context_relevancy"] = await evaluate_context_relevancy(evaluating_llm_name,queries, references_per_query, answers)
+    metrics["Correctness"]  = await evaluate_correctness(evaluating_llm_name, queries, references_per_query, answers, ground_truth_labels)
+    metrics["Semantic_semilarity"] = await evaluate_semantic_semilarity(evaluating_llm_name, queries, references_per_query, answers, ground_truth_labels)
     return metrics
+
+async def evaluate_correctness(evaluating_llm_name: str, queries: Collection[str], references_per_query: Collection[str], answers: Collection[CompletionResponse], ground_truth_labels: Collection[str]):
+    results = []
+    evaluating_llm = Ollama(temperature=0, model=evaluating_llm_name, request_timeout=120.0, duration=-1, context_size=4096)
+
+    evaluator = CorrectnessEvaluator(evaluating_llm)
+
+    for index, _ in tqdm(enumerate(answers), desc="Evaluating correctness"):
+        query, answer, references, ground_truth = queries[index], answers[index], references_per_query[index], ground_truth_labels[index]
+        evaluation_result = await evaluator.aevaluate(query=query, response=answer.text, contexts=references, reference=ground_truth)
+        results.append(evaluation_result)
+
+    return results
+
+async def evaluate_semantic_semilarity(evaluating_llm_name: str, queries: Collection[str], references_per_query: Collection[str], answers: Collection[CompletionResponse], ground_truth_labels: Collection[str]):
+    results = []
+    evaluating_llm = Ollama(temperature=0, model=evaluating_llm_name, request_timeout=120.0, duration=-1, context_size=4096)
+
+    evaluator = SemanticSimilarityEvaluator(evaluating_llm)
+
+    for index, _ in tqdm(enumerate(answers), desc="Evaluating semantic semilarity"):
+        query, answer, references, ground_truth = queries[index], answers[index], references_per_query[index], ground_truth_labels[index]
+        evaluation_result = await evaluator.aevaluate(query=query, response=answer.text, contexts=references, reference=ground_truth)
+        results.append(evaluation_result)
+
+    return results
 
 
 async def evaluate_faithfulness(evaluating_llm_name: str, queries: Collection[str], references_per_query: Collection[str], answers: Collection[CompletionResponse]):
@@ -221,10 +238,9 @@ async def evaluate_faithfulness(evaluating_llm_name: str, queries: Collection[st
 
     evaluator = FaithfulnessEvaluator(llm=evaluating_llm)
     
-    for index, _ in enumerate(answers):
+    for index, _ in tqdm(enumerate(answers), desc="Evaluating faithfullness"):
         query, answer, references = queries[index], answers[index], references_per_query[index]
         evaluation_result = await evaluator.aevaluate(query=query, response=answer.text, contexts=references)
-        print(f"query: {query}, context: {references} response: {answer.text}, pass: {evaluation_result.score} feedback: {evaluation_result.feedback}")
         results.append(evaluation_result)
 
     return results 
@@ -235,13 +251,26 @@ async def evaluate_context_relevancy(evaluating_llm_name: str, queries: Collecti
 
     evaluator = ContextRelevancyEvaluator(llm=evaluating_llm)
     
-    for index, _ in enumerate(answers):
+    for index, _ in tqdm(enumerate(answers), desc="Evaluating context_relevancy"):
         query, answer, references = queries[index], answers[index], references_per_query[index]
         evaluation_result = await evaluator.aevaluate(query=query, response=answer.text, contexts=references)
-        print(f"query: {query}, context: {references} response: {answer.text}, pass: {evaluation_result.score} feedback: {evaluation_result.feedback}")
         results.append(evaluation_result)
 
     return results 
+
+async def get_ground_truth(prompts: Collection[str], ground_truth_label_path: str = "../data/ground_truth.csv"):
+    if os.path.exists(ground_truth_label_path):
+        with open(ground_truth_label_path, mode ='r')as file:
+            csvFile = csv.reader(file)
+            for labels in csvFile:
+                return labels
+
+    # if no ground truth labels found then generate them    
+    print("No ground truth labels found, switch to generating groud truth.")
+    ground_truth_labels = create_answers(prompts, "llama3:instruct")
+    with open(ground_truth_label_path, 'w') as f:
+        for label in ground_truth_labels:
+            f.write(f"{label}\n")
 
 async def main():
     # logging.basicConfig(stream=sys.stdout, level=logging.INFO)
@@ -282,25 +311,26 @@ async def main():
                 less = "all"
                 print("Execution with all parameters.")
 
-            retriever = createRetriever(report_set, chunk_size, chunk_overlap, top_k)
-            basic_info, response_text = basicInformation(retriever, model)
-            year_info = yearInformation(retriever, model)
+            retriever = create_retriever(report_set, chunk_size, chunk_overlap, top_k)
+            basic_info, response_text = basic_information(retriever, model)
+            year_info = year_information(retriever, model)
             response_text["YEAR"] = year_info["YEAR"]
             response_text["REPORT_NAME"] = excel_sets[i]
-            print(response_text)
 
-            prompts, queries, references_per_query = createPrompts(retriever, model, basic_info, answer_length, masterfile)
+            prompts, queries, references_per_query = create_prompts(retriever, model, basic_info, answer_length, masterfile)
 
-            answers = createAnswers(prompts, model)
+            answers = create_answers(prompts, model)
 
-            evaluation_metrics = await evaluate_model(evaluating_llm_name, queries, references_per_query, answers)
+            ground_truth = await get_ground_truth(prompts)
+
+            evaluation_metrics = await evaluate_model(evaluating_llm_name, queries, references_per_query, answers, ground_truth)
 
             excels_path = f"Excel_Output_{model.split(':')[0]}"
             if not os.path.exists(excels_path):
                 print("create excel output path")
                 os.makedirs(excels_path)
             option = f"_topk{top_k}_params{less}"
-            path_excel = outputExcel(answers, queries, prompts, excel_sets[i], masterfile, model, evaluation_metrics, option, excels_path)
+            path_excel = output_excel(answers, queries, prompts, excel_sets[i], masterfile, model, evaluation_metrics, option, excels_path)
             print(f"excel was written to {path_excel}")
 
 asyncio.run(main())
