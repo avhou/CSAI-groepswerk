@@ -129,6 +129,7 @@ def create_answers(prompts: Collection[str], model: str) -> Collection[Completio
         response = llm.complete(p)
         answers.append(response)
 
+    print(f"number of answers: {len(answers)}")
     return answers
 
 
@@ -205,7 +206,7 @@ async def evaluate_model(evaluating_llm_name: str, queries: Collection[str], ref
     metrics["Faithfulness"] = await evaluate_faithfulness(evaluating_llm_name,queries, references_per_query, answers)
     metrics["Context_relevancy"] = await evaluate_context_relevancy(evaluating_llm_name,queries, references_per_query, answers)
     metrics["Correctness"]  = await evaluate_correctness(evaluating_llm_name, queries, references_per_query, answers, ground_truth_labels)
-    metrics["Semantic_semilarity"] = await evaluate_semantic_semilarity(evaluating_llm_name, queries, references_per_query, answers, ground_truth_labels)
+    metrics["Semantic_semilarity"] = await evaluate_semantic_semilarity(queries, references_per_query, answers, ground_truth_labels)
     return metrics
 
 async def evaluate_correctness(evaluating_llm_name: str, queries: Collection[str], references_per_query: Collection[str], answers: Collection[CompletionResponse], ground_truth_labels: Collection[str]):
@@ -213,7 +214,7 @@ async def evaluate_correctness(evaluating_llm_name: str, queries: Collection[str
     evaluating_llm = Ollama(temperature=0, model=evaluating_llm_name, request_timeout=120.0, duration=-1, context_size=4096)
 
     evaluator = CorrectnessEvaluator(evaluating_llm)
-
+    print(f"number of labels: {len(ground_truth_labels)}")
     for index, _ in tqdm(enumerate(answers), desc="Evaluating correctness"):
         query, answer, references, ground_truth = queries[index], answers[index], references_per_query[index], ground_truth_labels[index]
         evaluation_result = await evaluator.aevaluate(query=query, response=answer.text, contexts=references, reference=ground_truth)
@@ -264,7 +265,7 @@ async def evaluate_context_relevancy(evaluating_llm_name: str, queries: Collecti
 async def get_ground_truth(prompts: Collection[str], ground_truth_label_path: str = "../data/ground_truth.csv"):
     if os.path.exists(ground_truth_label_path):
         with open(ground_truth_label_path, mode ='r')as file:
-            csvFile = csv.reader(file)
+            csvFile = csv.reader(file, delimiter="\n")
             for labels in csvFile:
                 return labels
 
