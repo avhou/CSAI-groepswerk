@@ -22,6 +22,9 @@ import json
 import asyncio
 import os
 
+def get_embedding_model(model_name:str="nomic-embed-text", base_url:str="http://localhost:11434"):
+    return OllamaEmbedding(model_name, base_url)
+
 # function that takes the report and creates the retriever (with indexes etc.)
 def create_retriever(report: Collection[str], chunk_size: int, chunk_overlap: int, top_k: int) -> VectorIndexRetriever:
     # load in document
@@ -30,7 +33,7 @@ def create_retriever(report: Collection[str], chunk_size: int, chunk_overlap: in
     nodes = parser.get_nodes_from_documents(documents)
 
     # build indexes
-    embed_model = OllamaEmbedding(model_name="nomic-embed-text", base_url="http://localhost:11434")
+    embed_model = get_embedding_model()
     index = VectorStoreIndex(
         nodes,
         embed_model=embed_model,
@@ -218,11 +221,11 @@ async def evaluate_correctness(evaluating_llm_name: str, queries: Collection[str
 
     return results
 
-async def evaluate_semantic_semilarity(evaluating_llm_name: str, queries: Collection[str], references_per_query: Collection[str], answers: Collection[CompletionResponse], ground_truth_labels: Collection[str]):
+async def evaluate_semantic_semilarity(queries: Collection[str], references_per_query: Collection[str], answers: Collection[CompletionResponse], ground_truth_labels: Collection[str]):
     results = []
-    evaluating_llm = Ollama(temperature=0, model=evaluating_llm_name, request_timeout=120.0, duration=-1, context_size=4096)
+    embedding_model = get_embedding_model()
 
-    evaluator = SemanticSimilarityEvaluator(evaluating_llm)
+    evaluator = SemanticSimilarityEvaluator(embed_model=embedding_model)
 
     for index, _ in tqdm(enumerate(answers), desc="Evaluating semantic semilarity"):
         query, answer, references, ground_truth = queries[index], answers[index], references_per_query[index], ground_truth_labels[index]
@@ -267,10 +270,18 @@ async def get_ground_truth(prompts: Collection[str], ground_truth_label_path: st
 
     # if no ground truth labels found then generate them    
     print("No ground truth labels found, switch to generating groud truth.")
-    ground_truth_labels = create_answers(prompts, "llama3:instruct")
+    ground_truth_responses = create_answers(prompts, "llama3:instruct")
+    
+    ground_truth_strings = [response.text.replace("```json", "").replace("```", "") for response in ground_truth_responses] 
+    ground_truth_dicts = [json.loads(string) for string in ground_truth_strings]
+    labels = [dictionary["EXPLANATION"] for dictionary in ground_truth_dicts]
+
     with open(ground_truth_label_path, 'w') as f:
-        for label in ground_truth_labels:
+        
+        for label in labels:
             f.write(f"{label}\n")
+
+    return labels
 
 async def main():
     # logging.basicConfig(stream=sys.stdout, level=logging.INFO)
@@ -322,7 +333,6 @@ async def main():
             answers = create_answers(prompts, model)
 
             ground_truth = await get_ground_truth(prompts)
-
             evaluation_metrics = await evaluate_model(evaluating_llm_name, queries, references_per_query, answers, ground_truth)
 
             excels_path = f"Excel_Output_{model.split(':')[0]}"
