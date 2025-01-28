@@ -142,11 +142,15 @@ This was not present in \cite{durability} as their analysis was mostly qualitati
 Our implementation is available on github (\cite{github}).
 
 \section{Evaluation and Results} \label{sec:evaluation}
-
-\subsection{Quantitative Analysis}In this section, we present an analysis of the results obtained from our four models across the Zara and H$\&$M reports.
-The discussion is structured as follows: first, we address the issue of unanswered questions, followed by an evaluation of the decision-making processes, a review of the cited source pages, and finally, an analysis of the disclosed indicators.
+\subsection{Base Questions}
+This section provides an analysis of the results from our four models applied to the Zara and $H\&M$ reports, 
+using the outcomes of GPT-4o as the ground truth due to the absence of human experts. 
+The discussion is organized into four parts: first, we examine the issue of unanswered questions; 
+next, we evaluate the decision-making processes; then, we review the cited source pages; and finally, 
+we analyze the disclosed indicators.
 \subsubsection{Zara}
-\textbf{Missing Data:} An analysis of missing responses reveals that both the Llama3 and Mistral models failed to answer six questions each. 
+\textbf{Missing Data:} An analysis of missing responses reveals that both the Llama3 and 
+Mistral models failed to answer six questions each compared to the one from the GPT model. 
 All models exhibited issues with citing source pages. 
 The Llama3 model performed the best in this regard, with only six missing citations, 
 while the Llama2 model failed to provide any source page citations. The Mistral model was similar to Llama3, 
@@ -160,19 +164,22 @@ failing to cite source pages for 41 entries.
     \label{fig:image_label}
 \end{figure}
 
-\textbf{Decision Metrics:} The first notable observation in the analysis of decisions pertains to the Llama2 model, 
-which consistently answered "yes" to all questions. In contrast, 
-the Mistral model displayed an approximately balanced response rate, with nearly 50\% of 
-answers being "yes" and 50\% being "no." The Llama3 and Phi3 models produced more realistic outcomes, 
-as both provided a higher proportion of "no" responses compared to "yes." Among these, 
-the Mistral model exhibited a slight preference for "no" responses over the Llama3 model.
+\textbf{Decision Metrics:} The analysis of decisions reveals a noteworthy pattern in the Llama2 model, 
+which consistently responded "yes" to all questions. 
+In contrast, the Mistral model demonstrated a nearly balanced response distribution, 
+with approximately 50$\%$ of answers being "yes" and 50$\%$ being "no." 
+The Llama3 and Phi3 models generated more realistic results, 
+aligning more closely with the ground truth responses from the GPT model, 
+though they still underrepresented "yes" responses. 
+Notably, both models leaned toward providing a higher proportion of "no" responses compared to "yes." 
+Among them, the Mistral model showed a slightly stronger preference for "no" responses than the Llama3 model.
 \newline\newline
 An analysis of the missing decision entries for the Llama3 and Mistral models reveals the following patterns: 
 in the case of the Llama3 model, three missing decisions are from the "target" category, 
 two from the "strategy" category, and one from the "tracking" category. \newline
 For the Mistral model, both the "strategy" and "tracking" categories have two missing entries each,
 while the "target" and "governance" categories have one missing entry each. Notably, 
-both models failed to provide an answer for question 36.
+both models failed to provide an answer for question 36 and both the GPT and Mistral model failed on question 11.
 \newline\newline
 \textbf{Source Page Metrics:} The majority of questions with missing source pages from the Llama3, Mistral, and Phi3 models 
 fall within the "strategy" and "tracking" categories. 
@@ -181,17 +188,52 @@ Additionally, Llama3 and Phi3 fail to provide source pages for questions 9, 19, 
 while Mistral and Phi3 fail to cite source pages for questions 34, 50, 37, and 63. Notably, 
 there is no question for which all three models fail to provide a source page.
 \newline\newline
-\textbf{Disclosed indicators:} When comparing the "yes"-"no" counts of each model across different categories, 
-the counts for Llama3 and Phi3 appear to be quite similar overall. However, 
-a closer analysis of their counts within subcategories reveals subtle differences, 
-particularly in the allocation of "yes" votes, 
-while the "no" votes remain relatively consistent between the two models.
+\textbf{Disclosed indicators:} 
+When comparing the "yes" and "no" counts of each model across various categories, 
+Llama3 and Phi3 exhibit overall similarities. However, 
+a closer examination of their counts within subcategories uncovers subtle differences, 
+particularly in the distribution of "yes" responses, while "no" responses remain relatively 
+consistent between the two models. A similar observation applies to the comparison between Llama3 and GPT.
+\newline\newline
+
+\textbf{Answer Similarity:} 
+In this section, 
+we compare the generated answers to the ground truth answers provided by the GPT-4o model using TFIDF and 
+cosine similarity. The analysis shows that the Llama3 model achieves the highest count of questions where 
+it is most similar to the ground truth, with a total of 23 questions. The second position is held by the phi3 
+model with 16 questions, followed by llama2 with 13 questions, and mistral with 12 questions.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{./images/highest_count_zara.jpg}
+    \caption{Most similar response count}
+    \label{fig:image_label}
+\end{figure}
+
+Furthermore, Llama3 also ranks highest in average similarity, achieving $49\%$ average similarity. This is followed by phi3 at $47\%$, mistral at $45\%$, and finally, llama2 at $44\%$.
+
+\begin{center}
+    \begin{tabular}{||c c||} 
+     \hline
+     \textbf{Model} & \textbf{Average Simularity}  \\ [0.5ex] 
+     \hline
+     Llama3 & 0.489030 \\ 
+     \hline
+     Phi3 & 0.466919  \\
+     \hline
+     Mistral & 0.450250 \\ 
+     \hline
+     Llama2 & 0.435199  \\
+     \hline
+    \end{tabular}
+\end{center}
+    
 
 \subsubsection{H$\&$M}
-\textbf{Missing Data:} An analysis of the H$\&$M missing responses shows that the Mistral model failed to answer 
+\textbf{Missing Data:} An analysis of the $H\&M$ missing responses shows that the Mistral model failed to answer 
 five questions. Similar to the Zara report, 
 all models struggled with citing source pages. 
-The Llama3 model remained the best-performing in this aspect, with only three missing citations, 
+The Llama3 model remained the best-performing in this aspect, with only three missing citations compared to the one missing citation from the GPT model, 
 while the Llama2 model once again failed to provide any source page citations. 
 The Mistral model performed worse compared to the Zara report, 
 with seven missing citations this time. 
@@ -201,7 +243,8 @@ The Phi3 model also showed a slight decline, failing to cite source pages for 43
 \textbf{Decision Metrics:}
 Once again, the Llama2 model exclusively answered "yes," 
 while the Mistral model maintained an approximately 50\% "yes"-"no" response rate. 
-The Llama3 and Phi3 models exhibited response ratios similar to those observed in the Zara report. 
+The Llama3 and Phi3 models exhibited response ratios similar to those observed in the Zara report.
+Both Llama3 and Phi3 seem to underperform on the amount of yes votes compared to the ground turth model ($\sim$ 10 vs 20).
 As before, the "target" category accounted for the highest number of missing decisions.
 
 \begin{figure}[H]
@@ -223,17 +266,78 @@ Notably, there is still no question for which all three models failed to provide
 the counts for Llama3 and Phi3 once again appear to be quite similar overall. However, 
 a closer examination within subcategories reveals more pronounced differences compared to the Zara report. 
 Meanwhile, the Mistral model continues to maintain an approximately 50-50 response rate across all categories.
+\newline\newline
 
-\subsubsection{Conclusion}
-Based on these quantitative evaluations we can conclude that all models face challenges in citing source pages, 
-with Llama3 emerging as the most reliable in this aspect, and the persistent shortcomings of Llama2 in 
-providing citations. Decision-making patterns highlighted distinct behaviors across models, 
-with Llama2 consistently answering "yes," Mistral maintaining a balanced response ratio, 
-and Llama3 and Phi3 demonstrating realistic response distributions. 
-The "target" category repeatedly accounted for the highest number of missing decisions, 
-and missing source pages were concentrated in the "strategy" and "tracking" categories. 
-Despite these challenges, no single question was uniformly problematic across all models, 
-underscoring the variability in model performance.
+\textbf{Answer Similarity:} 
+The analysis shows that the Phi3 model achieves the highest count of questions where 
+it is most similar to the ground truth for the $H\&M$ data, with a total of 22 questions. The second position is held by the Llama3 
+model with 20 questions, followed by mistral with 15 questions, and Llama2 with 7 questions.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\textwidth]{./images/highest_count_hm.jpg}
+    \caption{Most similar response count}
+    \label{fig:image_label}
+\end{figure}
+
+Furthermore, 
+Llama3  ranks highest in average similarity again, 
+achieving $47\%$ average similarity. This is followed by phi3 at $46\%$, mistral at $45\%$, and finally, 
+llama2 at $38\%$.
+
+\begin{center}
+    \begin{tabular}{||c c||} 
+     \hline
+     \textbf{Model} & \textbf{Average Simularity}  \\ [0.5ex] 
+     \hline
+     Llama3 & 0.467212 \\ 
+     \hline
+     Phi3 & 0.457428  \\
+     \hline
+     Mistral & 0.450698 \\
+     \hline
+     Llama2 & 0.383788  \\
+     \hline
+    \end{tabular}
+\end{center}
+
+\subsection{Scenario Questions}
+In this section, we evaluate the models across two scenarios involving custom questions: 
+the first scenario consists of 10 questions focused on detecting greenwashing, 
+while the second scenario includes 6 questions aimed at addressing greenwashing mitigation.
+
+\subsubsection{Greenwashing Detection}
+\textbf{Answer Simularity:} Here we compare the cosine similarity of the ground truth from the GPT-4o model against the other LLMs.  
+For the Zara data, the best-scoring model on average cosine similarity is again Llama3 with $26.2\%$, followed by Mistral with $25.7\%$, Phi3 with $24.8\%$, and Llama2 with $20\%$.  
+When comparing the models on the question count with the highest similarity, we observe a tie between Mistral and Llama3 with 3 questions each, which is not surprising given their close average percentage scores. Surprisingly, Llama2 outperforms Phi3 (2 vs. 1) despite scoring lower on average percentage.\newline  
+For the $H\&M$ data, the Mistral model takes the lead over Llama3 with $23\%$ vs. $22\%$. Phi3 scores higher than Llama2 with $21\%$ vs. $18\%$.  
+Mistral also leads in the number of questions with the highest similarity (3). Surprisingly, Llama2 secures second place with 2 questions, while Llama3 and Phi3 share last place with 1 question each.
+
+\subsubsection{Greenwashing Mitigation}
+\textbf{Answer Simularity:} For the greenwashing mitigation on the Zara data, surprisingly, the Phi3 model scores the highest on average similarity with $30\%$. In second place is Llama3 with $25\%$, followed by Mistral and Llama2 with $17\%$ and $16\%$, respectively. The Phi3 model also takes a significant lead in the number of questions where it scored the highest, with 5 questions, while Llama3 scored the highest on just one question.\newline  
+For the $H\&M$ data, Llama3 performs slightly better than the Mistral model, scoring $24.9\%$ vs. $24.2\%$, followed closely by the Phi3 model with $23\%$ and, lastly, Llama2 with $18\%$.  
+Interestingly, there is a tie in the number of questions with the highest similarity between Mistral and Llama2, both with 2 questions, while Llama3 and Phi3 each have 1.
+
+\subsection{Conclusion}
+The evaluation and results highlight notable trends and differences across the four models when applied to both the Zara and $H\&M$ datasets, 
+as well as to the custom scenarios of greenwashing detection and mitigation.
+Llama3 consistently emerges as the strongest performer overall in terms of answer similarity, 
+achieving the highest average similarity scores and the highest count of questions most similar to the GPT-4o ground truth. 
+Phi3 also demonstrates strong performance, often ranking second in both metrics, particularly excelling in greenwashing mitigation where it achieved the highest average similarity ($30\%$) and led in question count for Zara data. 
+However, Phi3’s performance in citing source pages remains a significant challenge. Mistral provides balanced decision-making and leads in some scenario-specific evaluations, 
+such as greenwashing detection for $H\&M$, but it lags behind in citation completeness and average similarity scores. Llama2, while consistent in its "yes" responses, continues to struggle significantly with citing source pages, realistic decision-making, and overall similarity performance.
+
+In the greenwashing detection scenario, Llama3 performed best for the Zara dataset with $26.2\%$ average similarity, tying with Mistral for the most questions with the highest similarity (3 each). For $H\&M$, Mistral outperformed Llama3 with $23\%$ vs. $22\%$ average similarity, 
+and Mistral had the most questions with the highest similarity (3), followed by Llama2 with 2. Despite its weaker overall performance, Llama2 surprisingly outperformed Phi3 in question count for Zara data.
+
+In the greenwashing mitigation scenario, Phi3 excelled for Zara with the highest average similarity ($30\%$) and led with 5 questions scoring the highest similarity. Llama3 performed second-best with $25\%$ similarity but scored highest on only one question. 
+For $H\&M$, Llama3 slightly outperformed Mistral in average similarity ($24.9\%$ vs. $24.2\%$), while Mistral and Llama2 tied for the most questions with the highest similarity (2 each).
+
+Across both datasets and scenarios, the majority of missing source pages remain concentrated in the "strategy" and "tracking" categories, highlighting a common area for improvement across all models. 
+While Llama3 and Mistral show overlapping weaknesses on specific questions, such as question 36 in the Zara dataset, no single question consistently failed across all models.
+
+Overall, while Llama3 maintains its position as the leading model in most evaluations, Phi3 demonstrates scenario-specific strengths, particularly in greenwashing mitigation. 
+Mistral provides balanced decision-making and stands out in some detection tasks but needs refinement in citation and overall consistency.  
 
 \subsection{Ethical considerations}
 
