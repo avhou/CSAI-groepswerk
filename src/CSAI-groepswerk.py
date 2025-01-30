@@ -216,7 +216,7 @@ async def evaluate_correctness(evaluating_llm_name: str, queries: Collection[str
     evaluator = CorrectnessEvaluator(evaluating_llm)
     print(f"number of labels: {len(ground_truth_labels)}")
     for index, _ in tqdm(enumerate(answers), desc="Evaluating correctness"):
-        query, answer, references, ground_truth = queries[index], answers[index], references_per_query[index], ground_truth_labels[index]
+        query, answer, references, ground_truth = queries[index], answers[index], references_per_query[index], ground_truth_labels[index][0]
         evaluation_result = await evaluator.aevaluate(query=query, response=answer.text, contexts=references, reference=ground_truth)
         results.append(evaluation_result)
 
@@ -229,7 +229,7 @@ async def evaluate_semantic_semilarity(queries: Collection[str], references_per_
     evaluator = SemanticSimilarityEvaluator(embed_model=embedding_model)
 
     for index, _ in tqdm(enumerate(answers), desc="Evaluating semantic semilarity"):
-        query, answer, references, ground_truth = queries[index], answers[index], references_per_query[index], ground_truth_labels[index]
+        query, answer, references, ground_truth = queries[index], answers[index], references_per_query[index], ground_truth_labels[index][0]
         evaluation_result = await evaluator.aevaluate(query=query, response=answer.text, contexts=references, reference=ground_truth)
         results.append(evaluation_result)
 
@@ -262,27 +262,34 @@ async def evaluate_context_relevancy(evaluating_llm_name: str, queries: Collecti
 
     return results 
 
-async def get_ground_truth(prompts: Collection[str], ground_truth_label_path: str = "../data/ground_truth.csv"):
+async def get_ground_truth(prompts: Collection[str], ground_truth_label_path: str = "../data/ground_truth.csv") -> List[str]:
+    # If CSV exists, read and return its contents
     if os.path.exists(ground_truth_label_path):
-        with open(ground_truth_label_path, mode ='r')as file:
-            csvFile = csv.reader(file, delimiter="\n")
-            for labels in csvFile:
-                return labels
+        with open(ground_truth_label_path, mode='r', newline='') as file:
+            csv_reader = csv.reader(file)
+            all_labels = [row for row in csv_reader]
+            return all_labels
 
-    # if no ground truth labels found then generate them    
-    print("No ground truth labels found, switch to generating groud truth.")
+    # If no ground-truth labels found, generate them
+    print("No ground truth labels found. Switching to generating ground truth.")
     ground_truth_responses = create_answers(prompts, "llama3:instruct")
-    
-    ground_truth_strings = [response.text.replace("```json", "").replace("```", "") for response in ground_truth_responses] 
+
+    # Clean up the text and parse JSON
+    ground_truth_strings = [
+        response.text.replace("```json", "").replace("```", "")
+        for response in ground_truth_responses
+    ]
     ground_truth_dicts = [json.loads(string) for string in ground_truth_strings]
-    labels = [dictionary["EXPLANATION"] for dictionary in ground_truth_dicts]
 
-    with open(ground_truth_label_path, 'w') as f:
-        
+    # Extract labels
+    labels = [d["EXPLANATION"] for d in ground_truth_dicts]
+
+    # Write the labels to CSV
+    with open(ground_truth_label_path, 'w', newline='') as f:
+        writer = csv.writer(f)
         for label in labels:
-            f.write(f"{label}\n")
-
-    return labels
+            # each label is a string, so wrap it in a list
+            writer.writerow([label])
 
 async def main():
     # logging.basicConfig(stream=sys.stdout, level=logging.INFO)
