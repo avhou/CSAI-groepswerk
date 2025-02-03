@@ -290,6 +290,8 @@ async def get_ground_truth(prompts: Collection[str], ground_truth_label_path: st
         for label in labels:
             # each label is a string, so wrap it in a list
             writer.writerow([label])
+        
+    return labels
 
 async def main():
     # logging.basicConfig(stream=sys.stdout, level=logging.INFO)
