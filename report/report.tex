@@ -24,19 +24,19 @@
 \maketitle
 
 \section{Introduction} \label{sec:introduction}
-This report details the step taken by Arne Lescrauwaet (852617312), Joachim Verschelde (852594432), Alexander Van Hecke (852631385) and Farid Rasoolzadeh Baghmisheh (852104522) for the assignment of the 2023/2024 Capita Selecta in Artificial Intelligence course organised by the Open University (\cite{ou}).
+This report details the step taken by Arne Lescrauwaet (852617312), Joachim Verschelde (852594432), Alexander Van Hecke (852631385) and Farid Rasoolzadeh Baghmisheh (852104522) for the third assignment of the 2023/2024 Capita Selecta in Artificial Intelligence course organised by the Open University (\cite{ou}).
 
 For this assignment we expand on the experiments described in \cite{durability}.
 In this paper, the authors investigate the use of an LLM model and a RAG setup \cite{rag} to asses company durability disclosures.
 By examining published sustainability reports of carbon-intensive companies, they investigate whether climate transition measures are disclosed in these reports.
 A set of 64 indicators (questions) was used to investigate measures already taken or yet to be taken.
-For each question, relevant passages in the published sustainability reports were retrieved and passed as additional context to the GPT-4 model.
+For each question, relevant passages in the published sustainability reports were retrieved and passed as additional context to the ChatGPT-4 model.
 Their main conclusions were :
 
 \begin{itemize}
     \item Companies more often disclose information about measures yet to be taken (``Talk'' measures) than about measures that were already taken (``Walk'' measures).
     \item The RAG setup was judged by human experts and found to be mostly positive.
-    \item An automated tool as developed by the authors can be a help to human experts, but are no replacements for human experts.
+    \item An automated tool as developed by the authors can aid human experts, but is no replacement for human experts.
 \end{itemize}
 
 In this research, we want to expand on \cite{durability} in the following ways :
@@ -63,7 +63,7 @@ Instead of focusing on carbon-intensive industry, we want to examine sustainabil
 This illustrates the ability of RAG based setups to easily incorporate domain specific knowledge or questions.
 Section \ref{sec:data analysis} details the data used.
 
-As described in \cite{durability}, the GPT-4 model performs well on the specific task of examining sustainability reports.
+As described in \cite{durability}, the ChatGPT-4 model performs well on the specific task of examining sustainability reports.
 It is interesting to see how freely available models compare to commercial models.
 Furthermore, we expand the initial set of 64 indicators by examining two additional scenarios.
 In the first scenario \textit{(greenwashing detection)} we assess if a company shows potential signs of involvement or engagement with greenwashing methods and practices.
@@ -71,7 +71,6 @@ In the second scenario \textit{(greenwashing mitigation)} we provide relevant mi
 In section \ref{sec:methodology} we detail the models we evaluate and the experiments conducted.
 
 Section \ref{sec:evaluation} details the evaluation of the results.
-We do both a quantitative and a qualitative evaluation.
 Since the LLM is asked to not only judge whether the question is true or false, but also to provide argumentation about the decision made, it is important to evaluate the argumentation.
 Metrics such as coherence, consistency and relevance are important in this context.
 
@@ -104,17 +103,17 @@ These are useful for stakeholders (such as investors, regulators, etc) related t
 Because we use different data and different models, no ground truths or labels were available, neither for the original 64 indicators nor for the 16 additional scenario questions.
 We considered two options : \textbf{(i)} establish ground truth ourselves and \textbf{(ii)} letting a sufficiently sophisticated LLM model establish ground truth.
 Given that none of the team members possess domain expertise, we opted against the first approach.
-Instead, we selected the second option, utilizing ChatGPT to determine the ground truth for all questions.
+After approval of the assignment supervisor, we selected the second option, utilizing ChatGPT-4o to determine the ground truth for all questions.
 It is important to acknowledge that this decision implies we accept any inherent biases within ChatGPT and we adopt its judgments as the standard for evaluation.
 
-For each of the investigated companies, we iterate over the selected LLM models, then iterate over the hyperparameters, select the correct prompt and send the 64 (original indicators) + 16 (additional scenarios) questions to the LLM model.
-All answers are stored for further statistical analysis.
-Finally, relevant metrics for each combination of company, LLM model and hyperparameter selection are calculcated.
+For each of the investigated companies, we iterate over the selected LLM models, select the correct prompt and send the 64 (original indicators) + 16 (additional scenarios) questions to the LLM model.
+All answers are stored for further statistical analysis in Excel sheets.
+A TFIDF and cosine similarity analysis is performed to judge answer similarity between the generated answers and the ground truth.  TODO TODO verschil duidelijk tussen dit en de semantic similarity?
+Finally, other relevant metrics (faithfulness, context relevancy, correctness, semantic similarity) for each combination of company and LLM model are calculated.
+The \texttt{llama3:instruct} model is used for metric evaluation.
 
 \begin{itemize}
-    \item TODO TODO welke hyperparameters @Arne (?)
-    \item TODO TODO welke metrieken @Joachim
-    \item TODO TODO welke versie van ChatGPT is er exact gebruikt voor ground truth @Farid
+    \item TODO TODO welke metrieken @Joachim (ingevuld als : faithfulness, context relevancy, correctness, semantic similarity)
 \end{itemize}
 
 
@@ -124,7 +123,7 @@ We build on the implementation of \cite{durability}, available on Github (\cite{
 The authors use \texttt{llama\_index}, a Python framework that hides the details of accessing different LLM models.
 This allows for code that uses different LLM models with only minor changes.
 Processing unstructured data such as PDF documents is available out of the box.
-It also provides support for building RAG solutions, as a vector store (configured by a number of hyperparameters) and document retrieval are available.
+Building RAG solutions is straightforward as a vector store (configurable by a number of hyperparameters) and document retrieval are readily available.
 
 We made several changes to the original code of \cite{durability}.
 
@@ -135,22 +134,31 @@ It also allows to force LLM models to generate structured output in JSON format,
 \textbf{Second}, instead of using a single prompt for all LLM models, we created separate prompt per model.
 This was needed as the models used have different reasoning capabilities and some need more directions to generate structured output.
 As in the original paper, we created separate prompts to extract the general info, the year info and the answers to the questions.
-\textbf{Third}, the code was modified to loop over all available datasets, models, and hyperparameter settings.
+\textbf{Third}, the code was modified to loop over all available datasets and models.
 \textbf{Finally}, code to calculate performance statistics and metrics was added.
 This was not present in \cite{durability} as their analysis was mostly qualitative.
+
+The principal files of our solution are :
+
+\begin{itemize}
+    \item \texttt{CSAI-groepswerk.py} : main python script to loop over data, models, and generate metrics and statistics.
+    \item \texttt{prompt\_reader.py} : python script to facilitate working with different prompts for different models.
+    \item \texttt{stats\_hm.ipynb} : Jupyter notebook to calculate statistics on $H\&M$ data (original indicators).
+    \item \texttt{stats\_zara.ipynb} : Jupyter notebook to calculate statistics on Zara data (original indicators).
+    \item \texttt{stats\_scenarios.ipynb} : Jupyter notebook to calculate statistics on Zara data (additional scenarios).
+\end{itemize}
 
 Our implementation is available on github (\cite{github}).
 
 \section{Evaluation and Results} \label{sec:evaluation}
 \subsection{Base Questions}
-This section provides an analysis of the results from our four models applied to the Zara and $H\&M$ reports, 
-using the outcomes of GPT-4o as the ground truth due to the absence of human experts. 
+This section provides an analysis of the results from our four models applied to the Zara and $H\&M$ reports, using the ground truth established by ChatGPT-4o.
 The discussion is organized into four parts: first, we examine the issue of unanswered questions; 
 next, we evaluate the decision-making processes; then, we review the cited source pages; and finally, 
 we analyze the disclosed indicators.
 \subsubsection{Zara}
 \textbf{Missing Data:} An analysis of missing responses reveals that both the Llama3 and 
-Mistral models failed to answer six questions each compared to the one from the GPT model. 
+Mistral models failed to answer six questions each compared to the one from the ChatGPT-4o model.
 All models exhibited issues with citing source pages. 
 The Llama3 model performed the best in this regard, with only six missing citations, 
 while the Llama2 model failed to provide any source page citations. The Mistral model was similar to Llama3, 
@@ -169,7 +177,7 @@ which consistently responded "yes" to all questions.
 In contrast, the Mistral model demonstrated a nearly balanced response distribution, 
 with approximately 50$\%$ of answers being "yes" and 50$\%$ being "no." 
 The Llama3 and Phi3 models generated more realistic results, 
-aligning more closely with the ground truth responses from the GPT model, 
+aligning more closely with the ground truth responses from the ChatGPT-4o model,
 though they still underrepresented "yes" responses. 
 Notably, both models leaned toward providing a higher proportion of "no" responses compared to "yes." 
 Among them, the Mistral model showed a slightly stronger preference for "no" responses than the Llama3 model.
@@ -179,7 +187,7 @@ in the case of the Llama3 model, three missing decisions are from the "target" c
 two from the "strategy" category, and one from the "tracking" category. \newline
 For the Mistral model, both the "strategy" and "tracking" categories have two missing entries each,
 while the "target" and "governance" categories have one missing entry each. Notably, 
-both models failed to provide an answer for question 36 and both the GPT and Mistral model failed on question 11.
+both models failed to provide an answer for question 36 and both the ChatGPT-4o and Mistral model failed on question 11.
 \newline\newline
 \textbf{Source Page Metrics:} The majority of questions with missing source pages from the Llama3, Mistral, and Phi3 models 
 fall within the "strategy" and "tracking" categories. 
@@ -193,15 +201,14 @@ When comparing the "yes" and "no" counts of each model across various categories
 Llama3 and Phi3 exhibit overall similarities. However, 
 a closer examination of their counts within subcategories uncovers subtle differences, 
 particularly in the distribution of "yes" responses, while "no" responses remain relatively 
-consistent between the two models. A similar observation applies to the comparison between Llama3 and GPT.
+consistent between the two models. A similar observation applies to the comparison between Llama3 and ChatGPT-4o.
 \newline\newline
 
 \textbf{Answer Similarity:} 
-In this section, 
-we compare the generated answers to the ground truth answers provided by the GPT-4o model using TFIDF and 
-cosine similarity. The analysis shows that the Llama3 model achieves the highest count of questions where 
-it is most similar to the ground truth, with a total of 23 questions. The second position is held by the phi3 
-model with 16 questions, followed by llama2 with 13 questions, and mistral with 12 questions.
+In this section, we compare the generated answers to the ground truth answers provided by the ChatGPT-4o model using TFIDF and
+cosine similarity.
+The analysis shows that the Llama3 model achieves the highest count of questions where it is most similar to the ground truth, with a total of 23 questions.
+The second position is held by the phi3 model with 16 questions, followed by llama2 with 13 questions, and mistral with 12 questions.
 
 \begin{figure}[H]
     \centering
@@ -233,7 +240,7 @@ Furthermore, Llama3 also ranks highest in average similarity, achieving $49\%$ a
 \textbf{Missing Data:} An analysis of the $H\&M$ missing responses shows that the Mistral model failed to answer 
 five questions. Similar to the Zara report, 
 all models struggled with citing source pages. 
-The Llama3 model remained the best-performing in this aspect, with only three missing citations compared to the one missing citation from the GPT model, 
+The Llama3 model remained the best-performing in this aspect, with only three missing citations compared to the one missing citation from the ChatGPT-4o model,
 while the Llama2 model once again failed to provide any source page citations. 
 The Mistral model performed worse compared to the Zara report, 
 with seven missing citations this time. 
@@ -244,7 +251,7 @@ The Phi3 model also showed a slight decline, failing to cite source pages for 43
 Once again, the Llama2 model exclusively answered "yes," 
 while the Mistral model maintained an approximately 50\% "yes"-"no" response rate. 
 The Llama3 and Phi3 models exhibited response ratios similar to those observed in the Zara report.
-Both Llama3 and Phi3 seem to underperform on the amount of yes votes compared to the ground turth model ($\sim$ 10 vs 20).
+Both Llama3 and Phi3 seem to underperform on the amount of yes votes compared to the ground truth model ($\sim$ 10 vs 20).
 As before, the "target" category accounted for the highest number of missing decisions.
 
 \begin{figure}[H]
@@ -307,7 +314,7 @@ the first scenario consists of 10 questions focused on detecting greenwashing,
 while the second scenario includes 6 questions aimed at addressing greenwashing mitigation.
 
 \subsubsection{Greenwashing Detection}
-\textbf{Answer Simularity:} Here we compare the cosine similarity of the ground truth from the GPT-4o model against the other LLMs.  
+\textbf{Answer Simularity:} Here we compare the cosine similarity of the ground truth from the ChatGPT-4o model against the other LLMs.
 For the Zara data, the best-scoring model on average cosine similarity is again Llama3 with $26.2\%$, followed by Mistral with $25.7\%$, Phi3 with $24.8\%$, and Llama2 with $20\%$.  
 When comparing the models on the question count with the highest similarity, we observe a tie between Mistral and Llama3 with 3 questions each, which is not surprising given their close average percentage scores. Surprisingly, Llama2 outperforms Phi3 (2 vs. 1) despite scoring lower on average percentage.\newline  
 For the $H\&M$ data, the Mistral model takes the lead over Llama3 with $23\%$ vs. $22\%$. Phi3 scores higher than Llama2 with $21\%$ vs. $18\%$.  
@@ -322,9 +329,9 @@ Interestingly, there is a tie in the number of questions with the highest simila
 The evaluation and results highlight notable trends and differences across the four models when applied to both the Zara and $H\&M$ datasets, 
 as well as to the custom scenarios of greenwashing detection and mitigation.
 Llama3 consistently emerges as the strongest performer overall in terms of answer similarity, 
-achieving the highest average similarity scores and the highest count of questions most similar to the GPT-4o ground truth. 
+achieving the highest average similarity scores and the highest count of questions most similar to the ChatGPT-4o ground truth.
 Phi3 also demonstrates strong performance, often ranking second in both metrics, particularly excelling in greenwashing mitigation where it achieved the highest average similarity ($30\%$) and led in question count for Zara data. 
-However, Phi3’s performance in citing source pages remains a significant challenge. Mistral provides balanced decision-making and leads in some scenario-specific evaluations, 
+However, Phi3’s performance in citing source pages remains a significant challenge. Mistral provides balanced decision-making and leads in some scenario-specific evaluations,
 such as greenwashing detection for $H\&M$, but it lags behind in citation completeness and average similarity scores. Llama2, while consistent in its "yes" responses, continues to struggle significantly with citing source pages, realistic decision-making, and overall similarity performance.
 
 In the greenwashing detection scenario, Llama3 performed best for the Zara dataset with $26.2\%$ average similarity, tying with Mistral for the most questions with the highest similarity (3 each). For $H\&M$, Mistral outperformed Llama3 with $23\%$ vs. $22\%$ average similarity, 
@@ -347,7 +354,7 @@ In the argumentation, the LLM model must refer to the source chunks that were us
 Therefore, this solution is reasonably \textbf{transparant} and \textbf{explainable}, as it provides insight in how a decision was made by quoting the relevant information.
 However, this does not necessarily imply \textbf{trustworthiness}.
 The authors of \cite{durability} warned that the RAG solution could generate valuable output but should not be seen as a replacement for human experts.
-Furthermore, as we are comparing the answers to ground truth values produced by ChatGPT, we can only have faith in the produced answers and metrics if we trust the ground truths to be accurate.
+Furthermore, as we are comparing the answers to ground truth values produced by ChatGPT-4o, we can only have faith in the produced answers and metrics if we trust the ground truths to be accurate.
 There is a degree of \textbf{input bias} in our experiments.
 Companies have a vested interest in publishing optimistic and forward-looking sustainability reports.
 In other words, the reports used to provide argumentation to the questions answered, are not necessarily objective.
