@@ -1,5 +1,4 @@
 # Capita Selecta Group Assignment 3
-TODO FILL IN README.MD
 ## Installation
 
 To set up the environment for this project, you need to install the following dependencies:
