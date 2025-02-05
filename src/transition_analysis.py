@@ -1,3 +1,6 @@
+from typing import Collection
+
+from llama_index.core.evaluation import FaithfulnessEvaluator, ContextRelevancyEvaluator
 from llama_index.core.prompts.base import PromptTemplate
 from llama_index.core.retrievers import VectorIndexRetriever
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader
@@ -158,17 +161,20 @@ def createPromptTemplate(retriever, BASIC_INFO, QUERY_STR, PROMPT_TEMPLATE_QA, E
     return prompt
 
 
-def createPrompts(retriever, PROMPT_TEMPLATE_QA, BASIC_INFO, ANSWER_LENGTH, MASTERFILE):
+def create_prompts(retriever: VectorIndexRetriever, model: str, basic_info: str, answer_length: int, masterfile):
     prompts = []
+    contexts = []
     questions = []
-    for i in np.arange(0, MASTERFILE.shape[0]):
-        QUERY_STR = MASTERFILE.iloc[i]["question"]
-        questions.append(QUERY_STR)
-        EXPLANTATION = MASTERFILE.iloc[i]["question definitions"]
+    for i in np.arange(0, masterfile.shape[0]):
+        query_str = masterfile.iloc[i]["question"]
+        questions.append(query_str)
+        explanation = masterfile.iloc[i]["question definitions"]
+        retrieved_nodes = retriever.retrieve(query_str)
+        contexts.append([node.get_content().replace("\n", "") for node in retrieved_nodes])
         prompts.append(
-            createPromptTemplate(retriever, BASIC_INFO, QUERY_STR, PROMPT_TEMPLATE_QA, EXPLANTATION, ANSWER_LENGTH))
-    print("Prompts Created")
-    return prompts, questions
+            createPromptTemplate(retrieved_nodes, model, basic_info, query_str, explanation, answer_length))
+    return prompts, questions, contexts
+
 
 
 # -------------------------------
@@ -204,12 +210,8 @@ def createAnswers(prompts, MODEL):
 # Updated outputExcel function that now includes the new metrics
 # -------------------------------
 
-def outputExcel(answers, questions, prompts, REPORT, MASTERFILE, MODEL, option="", excels_path="Excels_SustReps",
-                faithfulness=None, context_relevancy=None):
+def outputExcel(answers, questions, prompts, REPORT, MASTERFILE, MODEL, evaluation_metrics, option="", excels_path="Excels_SustReps",):
     categories, ans, ans_verdicts, source_pages, source_texts = [], [], [], [], []
-    # New lists for the metric scores
-    faithfulness_scores = []
-    context_relevancy_scores = []
     subcategories = [i.split("_")[1] for i in MASTERFILE.identifier.to_list()]
     for i, a in enumerate(answers):
         try:
@@ -244,20 +246,14 @@ def outputExcel(answers, questions, prompts, REPORT, MASTERFILE, MODEL, option="
         else:
             category = "NA"
         categories.append(category)
-        # Append metric results if provided, otherwise "NA"
-        if faithfulness is not None and i < len(faithfulness):
-            faithfulness_scores.append(faithfulness[i])
-        else:
-            faithfulness_scores.append("NA")
-        if context_relevancy is not None and i < len(context_relevancy):
-            context_relevancy_scores.append(context_relevancy[i])
-        else:
-            context_relevancy_scores.append("NA")
+
     df_out = pd.DataFrame(
         {"category": categories, "subcategory": subcategories, "question": questions, "decision": ans_verdicts,
          "answer": ans,
          "source_pages": source_pages, "source_texts": source_texts,
-         "faithfulness": faithfulness_scores, "context_relevancy": context_relevancy_scores})
+          "faithfulness_score": [result.score for result in evaluation_metrics["Faithfulness"]],
+        "faithfulness_feedback": [result.feedback for result in evaluation_metrics["Faithfulness"]],
+         })
     excel_path_qa = f"./{excels_path}/" + REPORT.split("/")[-1].split(".")[0] + f"_{MODEL}" + f"{option}" + ".xlsx"
     df_out.to_excel(excel_path_qa)
     return excel_path_qa
@@ -292,6 +288,12 @@ async def evaluate_context_relevancy(evaluating_llm_name: str, queries, referenc
         evaluation_result = await evaluator.aevaluate(query=query, response=answer.text, contexts=references)
         results.append(evaluation_result)
     return results
+
+async def evaluate_model(evaluating_llm_name: str, queries: Collection[str], references_per_query: Collection[str], answers: Collection[str]):
+    metrics = {}
+    metrics["Faithfulness"] = await evaluate_faithfulness(evaluating_llm_name,queries, references_per_query, answers)
+    metrics["Context_relevancy"] = await evaluate_context_relevancy(evaluating_llm_name,queries, references_per_query, answers)
+    return metrics
 
 
 # -------------------------------
@@ -329,7 +331,7 @@ async def main():
     response_text["REPORT_NAME"] = REPORT
     print(response_text)
 
-    prompts, questions = createPrompts(retriever, PROMPT_TEMPLATE_QA, BASIC_INFO, ANSWER_LENGTH, MASTERFILE)
+    prompts, questions, references_per_query = create_prompts(retriever, PROMPT_TEMPLATE_QA, BASIC_INFO, ANSWER_LENGTH, MASTERFILE)
 
     # Process answers in batches to avoid rate limits
     answers = []
@@ -342,17 +344,13 @@ async def main():
         num = i + step_size if i + step_size <= len(prompts) else len(prompts)
         print(f"{num} Answers Given")
 
-    # Prepare references for evaluation. Here we assume the sources block is after "---------------------".
-    reference_texts = [p.split("---------------------")[1] if "---------------------" in p else "" for p in prompts]
 
-    print("Evaluating faithfulness and context relevancy metrics...")
-    faithfulness_results = await evaluate_faithfulness(MODEL, questions, reference_texts, answers)
-    context_relevancy_results = await evaluate_context_relevancy(MODEL, questions, reference_texts, answers)
+    evaluation_metrics = await evaluate_model(MODEL, questions, references_per_query, answers)
 
     excels_path = "Excel_Output"
     option = f"_topk{TOP_K}_params{less}"
-    path_excel = outputExcel(answers, questions, prompts, REPORT, MASTERFILE, MODEL, option, excels_path,
-                             faithfulness=faithfulness_results, context_relevancy=context_relevancy_results)
+    path_excel = outputExcel(answers, questions, prompts, REPORT, MASTERFILE, MODEL, evaluation_metrics, option, excels_path,
+                             )
     print(f"Excel file created at: {path_excel}")
 
 
