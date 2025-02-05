@@ -265,6 +265,7 @@ async def evaluate_context_relevancy(evaluating_llm_name: str, queries: Collecti
 async def get_ground_truth(prompts: Collection[str], ground_truth_label_path: str = "../data/ground_truth.csv") -> List[str]:
     # If CSV exists, read and return its contents
     if os.path.exists(ground_truth_label_path):
+        print(f'found ground truth on {ground_truth_label_path}')
         with open(ground_truth_label_path, mode='r', newline='') as file:
             csv_reader = csv.reader(file)
             all_labels = [row for row in csv_reader]
@@ -296,7 +297,7 @@ async def get_ground_truth(prompts: Collection[str], ground_truth_label_path: st
 async def main():
     # logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     # logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
-    masterfile = pd.read_excel("../data/questions_masterfile_100524.xlsx")
+    masterfile = pd.read_excel("../data/scenarios.ods")
     chunk_size = 350
     chunk_overlap = 50
     top_k = 8
@@ -304,14 +305,14 @@ async def main():
     evaluating_llm_name = "llama3:instruct"
 
     report_sets = [
-        # ["../data/CSAI-reports/Zara_Financial_Sustainability_Report_2023.pdf"],
+        ["../data/CSAI-reports/Zara_Financial_Sustainability_Report_2023.pdf"],
         [
             "../data/CSAI-reports/HM-Group-Annual-and-Sustainability-Report-2023.pdf",
             "../data/CSAI-reports/HM-Group-Sustainability-Disclosure-2023.pdf",
         ]
     ]
     excel_sets = [
-       # "zara",
+       "zara",
         "hm",
     ]
     models = [
@@ -342,7 +343,7 @@ async def main():
 
             answers = create_answers(prompts, model)
 
-            ground_truth = await get_ground_truth(prompts)
+            ground_truth = await get_ground_truth(prompts, f'../data/ground_truth_{excel_sets[i]}.csv')
             evaluation_metrics = await evaluate_model(evaluating_llm_name, queries, references_per_query, answers, ground_truth)
 
             excels_path = f"Excel_Output_{model.split(':')[0]}"
