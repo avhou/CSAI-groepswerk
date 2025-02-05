@@ -208,7 +208,7 @@ particularly in the distribution of "yes" responses, while "no" responses remain
 consistent between the two models. A similar observation applies to the comparison between Llama3 and ChatGPT-4o.
 \newline\newline
 
-\textbf{Answer Similarity:} 
+\textbf{Semantic Similarity:} 
 In this section, we compare the generated answers to the ground truth responses from the ChatGPT-4o model using a LLM-based metric that relies on cosine simularity.  
 
 We begin by comparing the number of questions where each model achieved the highest score. Llama3 dominates with 53 questions, 
@@ -249,8 +249,6 @@ Llama3 comes next with 50, closely trailing Mistral, while Phi3 ranks last with 
     \label{fig:image_label}
 \end{figure}
 
-\textbf{Context relevancy:}
-TODO
 
 \textbf{Correctness:}
 Llama3 emerges as the clear winner, with all scores being either 4 or 4.5, and the highest number of 4.5 ratings. Phi3 and Mistral perform similarly, though Phi3 demonstrates greater consistency. 
@@ -301,7 +299,7 @@ a closer examination within subcategories reveals more pronounced differences co
 Meanwhile, the Mistral model continues to maintain an approximately 50-50 response rate across all categories.
 \newline\newline
 
-\textbf{Answer Similarity:} 
+\textbf{Semantic Similarity:} 
 Llama3 achieves the highest score with 26 questions, followed by Mistral with 19, Llama2 with 12, and Phi3 with 6.
 
 \begin{figure}[H]
@@ -338,9 +336,6 @@ Phi3 achieves the highest score, followed by Llama3, then Mistral, with Llama2 r
     \label{fig:image_label}
 \end{figure}
 
-\textbf{Context relevancy:}
-TODO
-
 \textbf{Correctness:}
 Llama3 stands out as the clear winner, delivering the most 4.5 scores and the most consistent answers.  
 Phi3 secures second place with the highest number of 4.0 scores, followed by Mistral, while Llama2 ranks last.
@@ -357,11 +352,28 @@ the first scenario consists of 10 questions focused on detecting greenwashing,
 while the second scenario includes 6 questions aimed at addressing greenwashing mitigation.
 
 \subsubsection{Greenwashing Detection}
-\textbf{Answer Simularity:} Here we compare the average cosine similarity of the ground truth from the ChatGPT-4o model against the other LLMs.
-For the Zara data, the best-scoring model on average cosine similarity is again Llama3 with $26.2\%$, followed by Mistral with $25.7\%$, Phi3 with $24.8\%$, and Llama2 with $20\%$.  
-When comparing the models on the question count with the highest similarity, we observe a tie between Mistral and Llama3 with 3 questions each, which is not surprising given their close average percentage scores. Surprisingly, Llama2 outperforms Phi3 (2 vs. 1) despite scoring lower on average percentage.\newline  
-For the $H\&M$ data, the Mistral model takes the lead over Llama3 with $23\%$ vs. $22\%$. Phi3 scores higher than Llama2 with $21\%$ vs. $18\%$.  
-Mistral also leads in the number of questions with the highest similarity (3). Surprisingly, Llama2 secures second place with 2 questions, while Llama3 and Phi3 share last place with 1 question each.
+\textbf{Answer Simularity:} 
+For the Zara dataset, Llama3 emerges as the best-performing model, achieving an average cosine similarity of 0.87, followed by Phi3 at 0.82, Llama2 at 0.79, and Mistral at 0.77. Notably, Llama3 outperforms all other models on every question, recording the highest similarity in all nine instances.
+
+In the $H\&M$ dataset, Llama3 again leads with an average similarity score of 0.80, followed by Llama2 at 0.79, Phi3 at 0.78, and Mistral at 0.77. However, unlike the Zara dataset, the distribution of the highest similarity scores is more varied. Llama3 still ranks highest with four questions, while Mistral and Llama2 each achieve the top similarity in two questions, and Phi3 secures one.
+
+These results indicate that Llama3 consistently outperforms other models across both datasets. Llama2 also demonstrates strong performance, particularly in the $H\&M$ dataset, where it surpasses both Mistral and Phi3.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{lcc}
+        \toprule
+        \textbf{Model} & \textbf{Zara Mean} & \textbf{H\&M Mean} \\
+        \midrule
+        Llama3  & 0.8707 & 0.8009 \\
+        Llama2  & 0.7940 & 0.7879 \\
+        Mistral & 0.7732 & 0.7691 \\
+        Phi3    & 0.8226 & 0.7819 \\
+        \bottomrule
+    \end{tabular}
+    \caption{Average Cosine Similarity Scores for Zara and H\&M datasets}
+    \label{tab:cosine_similarity}
+\end{table}
 
 \textbf{Faithfulness:}
 For the Zara dataset, Mistral and Llama2 share the top position, each with six counts of 1 and three counts of 3. In contrast, Llama3 and Phi3 tie for last place, both registering five counts of 0 and four counts of 1.  
@@ -386,13 +398,32 @@ For the $H\&M$ dataset, Mistral delivers the best performance with eight counts 
 \end{figure}
 
 \textbf{Correctness:}
-
-\textbf{Context Relevancy:}
+For the Zara dataset, Llama3 is the only model to achieve a score of 4.5, while all other models score 4.  
+For the $H\&M$ dataset, Llama2 is the only model to reach a score of 4.5, while Phi3 and Mistral both score 4. Llama3 performs the worst, with one score of 2 and the rest at 4.
 
 \subsubsection{Greenwashing Mitigation}
-\textbf{Answer Simularity:} For the greenwashing mitigation on the Zara data, surprisingly, the Phi3 model scores the highest on average similarity with $30\%$. In second place is Llama3 with $25\%$, followed by Mistral and Llama2 with $17\%$ and $16\%$, respectively. The Phi3 model also takes a significant lead in the number of questions where it scored the highest, with 5 questions, while Llama3 scored the highest on just one question.\newline  
-For the $H\&M$ data, Llama3 performs slightly better than the Mistral model, scoring $24.9\%$ vs. $24.2\%$, followed closely by the Phi3 model with $23\%$ and, lastly, Llama2 with $18\%$.  
-Interestingly, there is a tie in the number of questions with the highest similarity between Mistral and Llama2, both with 2 questions, while Llama3 and Phi3 each have 1.
+\textbf{Answer Simularity:} 
+For the greenwashing mitigation on the Zara dataset, Llama2 achieves the highest average similarity score at 0.798, followed closely by Llama3 at 0.788. 
+Mistral ranks third with 0.773, while Phi3 has the lowest score at 0.760. In terms of the number of questions with the highest similarity, Llama2 leads with three, followed by Mistral with two and Llama3 with one.
+
+For the $H\&M$ dataset, Llama2 once again secures the highest average similarity score at 0.794, with Mistral close behind at 0.783. Phi3 takes third place with 0.745, while Llama3 has the lowest score at 0.734. 
+Interestingly, there is a three-way tie for the most questions with the highest similarity, with Llama3, Llama2, and Mistral each achieving the top score in the same number of instances.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{lcc}
+        \toprule
+        \textbf{Model} & \textbf{Zara Mean} & \textbf{H\&M Mean} \\
+        \midrule
+        Llama3  & 0.7881 & 0.7339 \\
+        Llama2  & 0.7984 & 0.7936 \\
+        Mistral & 0.7731 & 0.7828 \\
+        Phi3    & 0.7598 & 0.7449 \\
+        \bottomrule
+    \end{tabular}
+    \caption{Average Cosine Similarity Scores for Greenwashing Mitigation on Zara and H\&M datasets}
+    \label{tab:greenwashing_mitigation}
+\end{table}
 
 \textbf{Faithfulness:}
 For the Zara dataset, Llama3 ranks first with five counts of 1, followed by Llama2 in second place with four counts of 1. Mistral and Phi3 share the last position, each with three counts of 1.  
@@ -416,8 +447,8 @@ In the $H\&M$ dataset, the ranking remains similar, but this time, Llama3 and Ll
 \end{figure}
 
 \textbf{Correctness:}
-
-\textbf{Context Relevancy:}
+In the Zara dataset, Llama3 is the only model to achieve a score of 4.5. Both Mistral and Llama2 score 4, while Phi3 performs the worst, with only four instances of a score of 4 and lower consistency compared to Llama2 and Mistral.  
+For the $H\&M$ dataset, Llama2 is the only model to achieve a 4.5. Mistral follows in second place with six instances of a score of 4. Phi3 outperforms Llama3 with one additional score of 4 and greater consistency.
 
 \subsection{Conclusion}
 The evaluation and results highlight notable trends and differences across the four models when applied to both the Zara and $H\&M$ datasets, 
