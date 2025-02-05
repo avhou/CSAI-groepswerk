@@ -304,14 +304,14 @@ async def main():
     evaluating_llm_name = "llama3:instruct"
 
     report_sets = [
-        ["../data/CSAI-reports/Zara_Financial_Sustainability_Report_2023.pdf"],
+        # ["../data/CSAI-reports/Zara_Financial_Sustainability_Report_2023.pdf"],
         [
             "../data/CSAI-reports/HM-Group-Annual-and-Sustainability-Report-2023.pdf",
             "../data/CSAI-reports/HM-Group-Sustainability-Disclosure-2023.pdf",
         ]
     ]
     excel_sets = [
-       "zara",
+       # "zara",
         "hm",
     ]
     models = [
