@@ -158,8 +158,8 @@ Our implementation is available on github (\cite{github}).
 \subsection{Base Questions}
 This section provides an analysis of the results from our four models applied to the Zara and $H\&M$ reports, using the ground truth established by ChatGPT-4o.
 The discussion is organized into four parts: first, we examine the issue of unanswered questions; 
-next, we evaluate the decision-making processes; then, we review the cited source pages; and finally, 
-we analyze the disclosed indicators.
+next, we evaluate the decision-making processes; then, we review the cited source pages; 
+we analyze the disclosed indicators; and finally, we take a look at the LLM metrics.
 \subsubsection{Zara}
 \textbf{Missing Data:} An analysis of missing responses reveals that both the Llama3 and 
 Mistral models failed to answer six questions each compared to the one from the ChatGPT-4o model.
@@ -209,10 +209,10 @@ consistent between the two models. A similar observation applies to the comparis
 \newline\newline
 
 \textbf{Answer Similarity:} 
-In this section, we compare the generated answers to the ground truth answers provided by the ChatGPT-4o model using TFIDF and
-cosine similarity.
-The analysis shows that the Llama3 model achieves the highest count of questions where it is most similar to the ground truth, with a total of 23 questions.
-The second position is held by the phi3 model with 16 questions, followed by llama2 with 13 questions, and mistral with 12 questions.
+In this section, we compare the generated answers to the ground truth responses from the ChatGPT-4o model using a LLM-based metric that relies on cosine simularity.  
+
+We begin by comparing the number of questions where each model achieved the highest score. Llama3 dominates with 53 questions, 
+followed by Mistral with 5, Llama2 with 4, and Phi3 with 2.
 
 \begin{figure}[H]
     \centering
@@ -221,24 +221,46 @@ The second position is held by the phi3 model with 16 questions, followed by lla
     \label{fig:image_label}
 \end{figure}
 
-Furthermore, Llama3 also ranks highest in average similarity, achieving $49\%$ average similarity. This is followed by phi3 at $47\%$, mistral at $45\%$, and finally, llama2 at $44\%$.
+Furthermore, Llama3 also ranks highest in average similarity, achieving $85\%$ average similarity. This is followed by Mistral at $81.6\%$, Llama2 at $81\%$, and finally, Phi3 at $79\%$.
 
 \begin{center}
     \begin{tabular}{||c c||} 
      \hline
-     \textbf{Model} & \textbf{Average Simularity}  \\ [0.5ex] 
+     \textbf{Model} & \textbf{Average Simularity (LLM)}  \\ [0.5ex] 
      \hline
-     Llama3 & 0.489030 \\ 
+     Llama3 & 0.852544\\ 
      \hline
-     Phi3 & 0.466919  \\
+     Mistral & 0.816881\\ 
      \hline
-     Mistral & 0.450250 \\ 
+     Llama2 & 0.810437 \\
      \hline
-     Llama2 & 0.435199  \\
+     Phi3 & 0.798742\\
      \hline
     \end{tabular}
 \end{center}
-    
+
+\textbf{Faithfulness:}
+Surprisingly, Llama2 achieves the highest faithfulness score, with 58 questions classified as faithful. 
+Llama3 comes next with 50, closely trailing Mistral, while Phi3 ranks last with just over 35.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{./images/faith_zara.png}
+    \caption{Faithfulness scores}
+    \label{fig:image_label}
+\end{figure}
+
+\textbf{Context relevancy:}
+TODO
+
+\textbf{Correctness:}
+Llama3 emerges as the clear winner, with all scores being either 4 or 4.5, and the highest number of 4.5 ratings. Phi3 and Mistral perform similarly, though Phi3 demonstrates greater consistency. 
+Llama2 ranks the lowest, with the fewest 4.0 scores and a higher occurrence of lower ratings.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{./images/correct_zara.png}
+    \caption{Correctness scores}
+    \label{fig:image_label}
+\end{figure}
 
 \subsubsection{H$\&$M}
 \textbf{Missing Data:} An analysis of the $H\&M$ missing responses shows that the Mistral model failed to answer 
@@ -280,9 +302,7 @@ Meanwhile, the Mistral model continues to maintain an approximately 50-50 respon
 \newline\newline
 
 \textbf{Answer Similarity:} 
-The analysis shows that the Phi3 model achieves the highest count of questions where 
-it is most similar to the ground truth for the $H\&M$ data, with a total of 22 questions. The second position is held by the Llama3 
-model with 20 questions, followed by mistral with 15 questions, and Llama2 with 7 questions.
+Llama3 achieves the highest score with 26 questions, followed by Mistral with 19, Llama2 with 12, and Phi3 with 6.
 
 \begin{figure}[H]
     \centering
@@ -291,26 +311,45 @@ model with 20 questions, followed by mistral with 15 questions, and Llama2 with 
     \label{fig:image_label}
 \end{figure}
 
-Furthermore, 
-Llama3  ranks highest in average similarity again, 
-achieving $47\%$ average similarity. This is followed by phi3 at $46\%$, mistral at $45\%$, and finally, 
-llama2 at $38\%$.
+Additionally, Llama3 leads in average similarity with 80.4\%, followed closely by Mistral at 80\%, Llama2 at 78.8\%, and Phi3 at 78.7\%.
 
 \begin{center}
     \begin{tabular}{||c c||} 
      \hline
-     \textbf{Model} & \textbf{Average Simularity}  \\ [0.5ex] 
+     \textbf{Model} & \textbf{Average Simularity (LLM)}  \\ [0.5ex] 
      \hline
-     Llama3 & 0.467212 \\ 
+     Llama3 &  0.804408\\
      \hline
-     Phi3 & 0.457428  \\
+     Mistral  & 0.800913\\
      \hline
-     Mistral & 0.450698 \\
+     Llama2 & 0.788172\\
      \hline
-     Llama2 & 0.383788  \\
+     Phi3 &  0.787818 \\
      \hline
     \end{tabular}
 \end{center}
+
+\textbf{Faithfulness:}
+Phi3 achieves the highest score, followed by Llama3, then Mistral, with Llama2 ranking last.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{./images/faith_hm.png}
+    \caption{Faithfulness scores}
+    \label{fig:image_label}
+\end{figure}
+
+\textbf{Context relevancy:}
+TODO
+
+\textbf{Correctness:}
+Llama3 stands out as the clear winner, delivering the most 4.5 scores and the most consistent answers.  
+Phi3 secures second place with the highest number of 4.0 scores, followed by Mistral, while Llama2 ranks last.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{./images/correct_hm.png}
+    \caption{Correctness scores}
+    \label{fig:image_label}
+\end{figure}
 
 \subsection{Scenario Questions}
 In this section, we evaluate the models across two scenarios involving custom questions: 
@@ -318,16 +357,67 @@ the first scenario consists of 10 questions focused on detecting greenwashing,
 while the second scenario includes 6 questions aimed at addressing greenwashing mitigation.
 
 \subsubsection{Greenwashing Detection}
-\textbf{Answer Simularity:} Here we compare the cosine similarity of the ground truth from the ChatGPT-4o model against the other LLMs.
+\textbf{Answer Simularity:} Here we compare the average cosine similarity of the ground truth from the ChatGPT-4o model against the other LLMs.
 For the Zara data, the best-scoring model on average cosine similarity is again Llama3 with $26.2\%$, followed by Mistral with $25.7\%$, Phi3 with $24.8\%$, and Llama2 with $20\%$.  
 When comparing the models on the question count with the highest similarity, we observe a tie between Mistral and Llama3 with 3 questions each, which is not surprising given their close average percentage scores. Surprisingly, Llama2 outperforms Phi3 (2 vs. 1) despite scoring lower on average percentage.\newline  
 For the $H\&M$ data, the Mistral model takes the lead over Llama3 with $23\%$ vs. $22\%$. Phi3 scores higher than Llama2 with $21\%$ vs. $18\%$.  
 Mistral also leads in the number of questions with the highest similarity (3). Surprisingly, Llama2 secures second place with 2 questions, while Llama3 and Phi3 share last place with 1 question each.
 
+\textbf{Faithfulness:}
+For the Zara dataset, Mistral and Llama2 share the top position, each with six counts of 1 and three counts of 3. In contrast, Llama3 and Phi3 tie for last place, both registering five counts of 0 and four counts of 1.  
+
+For the $H\&M$ dataset, Mistral delivers the best performance with eight counts of 1. Llama2 follows in second place with seven counts of 1 and two counts of 0. Phi3 ranks third with five counts of 1 and four counts of 0, while Llama3 comes last, recording four counts of 1 and five counts of 0.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{./images/faith_zara_scene_det.png}
+        \caption{Correctness scores Zara}
+        \label{fig:faith_zara}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{./images/faith_hm_scene_det.png}
+        \caption{Correctness scores $H\&M$}
+        \label{fig:faith_hm}
+    \end{minipage}
+\end{figure}
+
+\textbf{Correctness:}
+
+\textbf{Context Relevancy:}
+
 \subsubsection{Greenwashing Mitigation}
 \textbf{Answer Simularity:} For the greenwashing mitigation on the Zara data, surprisingly, the Phi3 model scores the highest on average similarity with $30\%$. In second place is Llama3 with $25\%$, followed by Mistral and Llama2 with $17\%$ and $16\%$, respectively. The Phi3 model also takes a significant lead in the number of questions where it scored the highest, with 5 questions, while Llama3 scored the highest on just one question.\newline  
 For the $H\&M$ data, Llama3 performs slightly better than the Mistral model, scoring $24.9\%$ vs. $24.2\%$, followed closely by the Phi3 model with $23\%$ and, lastly, Llama2 with $18\%$.  
 Interestingly, there is a tie in the number of questions with the highest similarity between Mistral and Llama2, both with 2 questions, while Llama3 and Phi3 each have 1.
+
+\textbf{Faithfulness:}
+For the Zara dataset, Llama3 ranks first with five counts of 1, followed by Llama2 in second place with four counts of 1. Mistral and Phi3 share the last position, each with three counts of 1.  
+
+In the $H\&M$ dataset, the ranking remains similar, but this time, Llama3 and Llama2 tie for first place, while Mistral and Phi3 once again share the last position.
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{./images/faith_zara_scene_mit.png}
+        \caption{Correctness scores Zara}
+        \label{fig:faith_zara}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{./images/faith_hm_scene_mit.png}
+        \caption{Correctness scores $H\&M$}
+        \label{fig:faith_hm}
+    \end{minipage}
+\end{figure}
+
+\textbf{Correctness:}
+
+\textbf{Context Relevancy:}
 
 \subsection{Conclusion}
 The evaluation and results highlight notable trends and differences across the four models when applied to both the Zara and $H\&M$ datasets, 
