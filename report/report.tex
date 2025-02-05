@@ -115,9 +115,9 @@ The \texttt{llama3:instruct} model is used for metric evaluation.
 \subsubsection{Evaluation Metrics}
 To evaluate the quality of the LLM outputs, we employ four key metrics:
 \begin{itemize}
-    \item [\textbf{Faithfulness}] evaluates whether the response stays true to the source materials. This means avoiding new or fabricated information: the answer should not include claims that are not supported by the original context.
-    \item [\textbf{Context relevancy}] checks if the answer properly addresses the question based on the text provided. Rather than straying into unrelated details, a relevant response will use the most pertinent information from the reports to respond directly to the query.
-    \item [\textbf{Correctness}]measures whether each statement in the response is factually accurate. If the answer claims a company has adopted a specific policy or reached a certain milestone, these points must match verifiable details from the text or known ground truths.
+    \item [\textbf{Faithfulness}] evaluates whether the response stays true to the source materials. This means avoiding new or fabricated information (hallucinations): the answer should not include claims that are not supported by the original context.
+    \item [\textbf{Context relevancy}] checks if the answer properly addresses the question based on the text provided. Rather than going into unrelated details, a relevant response will use the most appropriate information from the reports to respond directly to the query.
+    \item [\textbf{Correctness}] measures whether each statement in the response is factually accurate. If the answer claims a company has adopted a specific policy or reached a certain milestone, these points must match verifiable details from the text or known ground truths.
     \item [\textbf{Semantic semilarity}] looks at the underlying meaning of the model’s answer, rather than focusing on specific words. Even if the wording differs from the source or a reference answer, the response is considered similar if it conveys the same essential ideas or facts.
 \end{itemize}
 
