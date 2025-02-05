@@ -92,7 +92,7 @@ We retrieve the 8 most relevant chunks as additional context for each question.
 
 As described in section \ref{sec:goal}, in this research we want to \textbf{(i)} use sustainability reports published by the fast fashion industry instead of the carbon-intensive industry, \textbf{(ii)} evaluate several LLM models instead of relying on ChatGPT alone, \textbf{(iii)} evaluate two additional scenarios containing questions that are focused more on greenwashing and \textbf{(iv)} compute a number of metrics to measure things like coherence and consistency.
 
-We selected 4 publicly available Ollama LLMs models : \texttt{llama2}, \texttt{llama3:instruct}, \texttt{mistral} and \texttt{phi3:14b-instruct}.
+We selected 4 publicly available Ollama LLMs models : \texttt{Llama2}, \texttt{Llama3:instruct}, \texttt{Mistral} and \texttt{Phi3:14b-instruct}.
 Custom prompts were written for each model to accommodate for the difference in reasoning skills and the capability to return structured outputs.
 
 The 2023 sustainability reports of two fast-fashion companies (\textbf{H\&M} and \textbf{Zara}) were selected as dataset.
@@ -111,7 +111,7 @@ For each of the investigated companies, we iterate over the selected LLM models,
 All answers are stored for further statistical analysis in Excel sheets.
 A semantic similarity is performed to judge answer similarity between the generated answers and the ground truth.
 Finally, other relevant metrics (faithfulness, context relevancy, correctness) for each combination of company and LLM model are calculated.
-The \texttt{llama3:instruct} model is used for metric evaluation.
+The \texttt{Llama3:instruct} model is used for metric evaluation.
 
 \subsubsection{Evaluation Metrics}
 To evaluate the quality of the LLM outputs, we employ four key metrics:
@@ -119,7 +119,7 @@ To evaluate the quality of the LLM outputs, we employ four key metrics:
     \item [\textbf{Faithfulness}] evaluates whether the response stays true to the source materials. This means avoiding new or fabricated information (hallucinations): the answer should not include claims that are not supported by the original context.
     \item [\textbf{Context relevancy}] checks if the answer properly addresses the question based on the text provided. Rather than going into unrelated details, a relevant response will use the most appropriate information from the reports to respond directly to the query.
     \item [\textbf{Correctness}] measures whether each statement in the response is factually accurate. If the answer claims a company has adopted a specific policy or reached a certain milestone, these points must match verifiable details from the text or known ground truths.
-    \item [\textbf{Semantic semilarity}] looks at the underlying meaning of the model’s answer, rather than focusing on specific words. Even if the wording differs from the source or a reference answer, the response is considered similar if it conveys the same essential ideas or facts.
+    \item [\textbf{Semantic similarity}] looks at the underlying meaning of the model’s answer, rather than focusing on specific words. Even if the wording differs from the source or a reference answer, the response is considered similar if it conveys the same essential ideas or facts.
 \end{itemize}
 
 \subsection{Implementation}
@@ -461,13 +461,14 @@ On the other hand, more regulation could be necessary to assure the reports are 
 \section{Conclusions and Discussion} \label{sec:conclusions}
 
 For this assignment, we have adapted the approach described in \cite{durability} to evaluate questions related to greenwashing on fast fashion durability reports.
-Instead of relying on a single closed source LLM, we have evaluated four open source models (\texttt{llama2}, \texttt{llama3:instruct}, \texttt{mistral} and \texttt{phi3:14b-instruct}).
+Instead of relying on a single closed source LLM, we have evaluated four open source models (\texttt{Llama2}, \texttt{Llama3:instruct}, \texttt{Mistral} and \texttt{phi3:14b-instruct}).
 To evaluate the performance of these models, we have used several metrics (faithfulness, context relevancy, correctness, semantic similarity).
 
-The main conclusions of this research are : \textbf{i)} all evaluated models exhibit poor performance in the classification of indicators, with some models consistently selecting a single class and others appearing to choose classes at random, which indicates the models lack real reasoning, \textbf{ii)} generating source page citations proves to be highly challenging for the models and \textbf{iii)} the metrics indicate that similarity and relevance, as measured against the ground truth established by the ChatGPT-4o model, are generally weak across all models, though their performance in this regard is relatively comparable.
-The \texttt{llama2} model - the smallest LLM model we tested -  consistently scores worst.
-The \texttt{llama3:instruct} model seems to perform best.
+The main conclusions of this research are : \textbf{i)} all evaluated models exhibit poor performance in the classification of indicators, with some models consistently selecting a single class and others appearing to choose classes at random, which indicates the models lack real reasoning, \textbf{ii)} generating source page citations proves to be highly challenging for the models and \textbf{iii)} semantic similarity between the model output and the ground truth is reasonable, but the other metrics show important differences between the models tested and ChatGPT-4o.
+The \texttt{Llama2} model - the smallest LLM model we tested -  consistently scores worst.
+The \texttt{Llama3:instruct} model seems to perform best.
 The instruction tuning done for this model appears to help for these specific tasks.
+Against our expectations, the instruction tuned \texttt{Phi3:14b-instruct} model is almost twice the size of \texttt{Llama3:instruct}, but performs consistently worse than the latter.
 Even though the RAG setup permits answering domain specific questions by introducing the right context, we clearly see the limitations of such a setup as well.
 Introducing the right context alone is not sufficient to coherently and accurately answer questions that need reasoning about that context.
 
