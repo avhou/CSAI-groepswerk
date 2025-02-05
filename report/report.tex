@@ -109,8 +109,8 @@ It is important to acknowledge that this decision implies we accept any inherent
 
 For each of the investigated companies, we iterate over the selected LLM models, select the correct prompt and send the 64 (original indicators) + 16 (additional scenarios) questions to the LLM model.
 All answers are stored for further statistical analysis in Excel sheets.
-A TFIDF and cosine similarity analysis is performed to judge answer similarity between the generated answers and the ground truth.
-Finally, other relevant metrics (faithfulness, context relevancy, correctness, semantic similarity) for each combination of company and LLM model are calculated.
+A semantic similarity is performed to judge answer similarity between the generated answers and the ground truth.
+Finally, other relevant metrics (faithfulness, context relevancy, correctness) for each combination of company and LLM model are calculated.
 The \texttt{llama3:instruct} model is used for metric evaluation.
 
 \subsubsection{Evaluation Metrics}
@@ -462,7 +462,7 @@ On the other hand, more regulation could be necessary to assure the reports are 
 
 For this assignment, we have adapted the approach described in \cite{durability} to evaluate questions related to greenwashing on fast fashion durability reports.
 Instead of relying on a single closed source LLM, we have evaluated four open source models (\texttt{llama2}, \texttt{llama3:instruct}, \texttt{mistral} and \texttt{phi3:14b-instruct}).
-To evaluate the performance of these models, we have used several metrics (TFIDF, cosine similarity, faithfulness, context relevancy, correctness, semantic similarity).
+To evaluate the performance of these models, we have used several metrics (faithfulness, context relevancy, correctness, semantic similarity).
 
 The main conclusions of this research are : \textbf{i)} all evaluated models exhibit poor performance in the classification of indicators, with some models consistently selecting a single class and others appearing to choose classes at random, which indicates the models lack real reasoning, \textbf{ii)} generating source page citations proves to be highly challenging for the models and \textbf{iii)} the metrics indicate that similarity and relevance, as measured against the ground truth established by the ChatGPT-4o model, are generally weak across all models, though their performance in this regard is relatively comparable.
 The \texttt{llama2} model - the smallest LLM model we tested -  consistently scores worst.
