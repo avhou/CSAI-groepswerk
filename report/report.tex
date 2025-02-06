@@ -25,7 +25,7 @@
 \maketitle
 
 \section{Introduction} \label{sec:introduction}
-This report details the step taken by Arne Lescrauwaet (852617312), Joachim Verschelde (852594432), Alexander Van Hecke (852631385) and Farid Rasoolzadeh Baghmisheh (852104522) for the third assignment of the 2023/2024 Capita Selecta in Artificial Intelligence course organised by the Open University (\cite{ou}).
+This report details the step taken by Arne Lescrauwaet (852617312), Joachim Verschelde (852594432), Alexander Van Hecke (852631385) and Farid Rasoolzadeh Baghmisheh (852104522) for the third assignment of the 2024/2025 Capita Selecta in Artificial Intelligence course organised by the Open University (\cite{ou}).
 
 For this assignment we expand on the experiments described in \cite{durability}.
 In this paper, the authors investigate the use of an LLM model and a RAG setup \cite{rag} to asses company durability disclosures.
@@ -53,7 +53,7 @@ The text cluster introduces a number of techniques to improve the performance of
 One of the techniques discussed is RAG, first introduced in \cite{rag}.
 RAG adds context when querying LLM models, allowing the model to get a better semantic understanding of the question and to generate a more relevant answer.
 The main strenghts of a RAG based setup are \textbf{i)} the ability to access up-to-date information (no cutoff), \textbf{ii)} the ability to add domain specific knowledge, \textbf{iii)} efficiency, as the parameteric memory does not need to contain all knowledge and no retraining or fine-tuning is necessary, \textbf{iv)} the ability to generate more specific, more diverse and more factual answers and \textbf{v)} the scalability of the approach.
-The main disadvantages of a RAG based setup include \textbf{i)} the context limits of LLM models, which restricts how much additional information can be passed, \textbf{ii)} the performance of the retriever as the weakest link in the setup, \textbf{iii)} the additional latency and complexity introduced, \textbf{iv)} the need to keep the knowledge base up-to-date.
+The main disadvantages of a RAG based setup include \textbf{i)} the context limits of LLM models, which restricts how much additional information can be passed, \textbf{ii)} the performance of the retriever as the weakest link in the setup, \textbf{iii)} the additional latency and complexity introduced, and \textbf{iv)} the need to keep the knowledge base up-to-date.
 Evaluation of climate transition disclosures presents an excellent concrete use case of RAG.
 
 \section{Goal} \label{sec:goal}
@@ -67,7 +67,7 @@ Section \ref{sec:data analysis} details the data used.
 As described in \cite{durability}, the ChatGPT-4 model performs well on the specific task of examining sustainability reports.
 It is interesting to see how freely available models compare to commercial models.
 Furthermore, we expand the initial set of 64 indicators by examining two additional scenarios.
-In the first scenario \textit{(greenwashing detection)} we assess if a company shows potential signs of involvement or engagement with greenwashing methods and practices.
+In the first scenario \textit{(greenwashing detection)} we assess whether a company shows potential signs of involvement or engagement with greenwashing methods and practices.
 In the second scenario \textit{(greenwashing mitigation)} we provide relevant mitigation methods if the company is indeed engaging in greenwashing practices.
 In section \ref{sec:methodology} we detail the models we evaluate and the experiments conducted.
 
@@ -117,7 +117,7 @@ The \texttt{Llama3:instruct} model is used for metric evaluation.
 To evaluate the quality of the LLM outputs, we employ four key metrics:
 \begin{itemize}
     \item [\textbf{Faithfulness}] evaluates whether the response stays true to the source materials. This means avoiding new or fabricated information (hallucinations): the answer should not include claims that are not supported by the original context.
-    \item [\textbf{Context relevancy}] focuses on whether the context retrieved from the knowledge base match the user’s query. Rather than evaluating the final answer, we checks if the retrieved embeddings themselves are aligned with what the user is asking. By measuring similarity between the query and each embedding, we have a way to evaluate the retrieval step in our RAG system.
+    \item [\textbf{Context relevancy}] focuses on whether the context retrieved from the knowledge base match the user’s query. Rather than evaluating the final answer, we check if the retrieved embeddings themselves are aligned with what the user is asking. By measuring similarity between the query and each embedding, we have a way to evaluate the retrieval step in our RAG system.
     \item [\textbf{Correctness}] measures whether each statement in the response is factually accurate. If the answer claims a company has adopted a specific policy or reached a certain milestone, these points must match verifiable details from the text or known ground truths.
     \item [\textbf{Semantic similarity}] looks at the underlying meaning of the model’s answer, rather than focusing on specific words. Even if the wording differs from the source or a reference answer, the response is considered similar if it conveys the same essential ideas or facts.
 \end{itemize}
@@ -136,8 +136,8 @@ We made several changes to the original code of \cite{durability}.
 Since we wanted to evaluate the performance of some of the publicly available LLM models, we decided to host these models ourselves using \href{https://ollama.com/}{Ollama}.
 \texttt{Ollama} provides a REST interface to query models, and integration with \texttt{llama\_index} is available.
 It also allows to force LLM models to generate structured output in JSON format, which greatly helped evaluate performance of the different models.
-\textbf{Second}, instead of using a single prompt for all LLM models, we created separate prompt per model.
-This was needed as the models used have different reasoning capabilities and some need more directions to generate structured output.
+\textbf{Second}, instead of using a single prompt for all LLM models, we created a separate prompt for each model.
+This was needed as the models have different reasoning capabilities and some need more directions to generate structured output.
 As in the original paper, we created separate prompts to extract the general info, the year info and the answers to the questions.
 \textbf{Third}, the code was modified to loop over all available datasets and models.
 \textbf{Finally}, code to calculate performance statistics and metrics was added.
@@ -165,7 +165,7 @@ we analyze the disclosed indicators; and finally, we take a look at the LLM metr
 \textbf{Missing Data:} An analysis of missing responses reveals that both the Llama3 and 
 Mistral models failed to answer six questions each compared to the one from the ChatGPT-4o model.
 All models exhibited issues with citing source pages. 
-The Llama3 model performed the best in this regard, with only six missing citations, 
+The Llama3 model performed best in this regard, with only six missing citations, 
 while the Llama2 model failed to provide any source page citations. The Mistral model was similar to Llama3, 
 with eight missing source page citations. In contrast, the Phi3 model demonstrated significant shortcomings, 
 failing to cite source pages for 41 entries.
@@ -458,7 +458,24 @@ In the $H\&M$ dataset, the ranking remains similar, but this time, Llama3 and Ll
 In the Zara dataset, Llama3 is the only model to achieve a score of 4.5. Both Mistral and Llama2 score 4, while Phi3 performs the worst, with only four instances of a score of 4 and lower consistency compared to Llama2 and Mistral.  
 For the $H\&M$ dataset, Llama2 is the only model to achieve a 4.5. Mistral follows in second place with six instances of a score of 4. Phi3 outperforms Llama3 with one additional score of 4 and greater consistency.
 
-\subsection{Conclusion}
+\subsection{Ethical considerations}
+
+In this section, we discuss some ethical considerations.
+In the setup we used, we ask LLM models to judge whether questions are true or false, and to provide argumentation about the decision made.
+In the argumentation, the LLM model must refer to the source chunks that were used to base the decision on.
+Therefore, this solution is reasonably \textbf{transparant} and \textbf{explainable}, as it provides insight in how a decision was made by quoting the relevant information.
+However, this does not necessarily imply \textbf{trustworthiness}.
+The authors of \cite{durability} warned that the RAG solution could generate valuable output but should not be seen as a replacement for human experts.
+Furthermore, as we are comparing the answers to ground truth values produced by ChatGPT-4o, we can only have faith in the produced answers and metrics if we trust the ground truths to be accurate.
+There is a degree of \textbf{input bias} in our experiments.
+Companies have a vested interest in publishing optimistic and forward-looking sustainability reports.
+In other words, the reports used to provide argumentation to the questions answered, are not necessarily objective.
+Furthermore, since ChatGPT was used to establish ground truths for the questions, any and all biases present in that model would leak in the performance metrics.
+Finally, \textbf{regulation} is important in this context as well.
+On the one hand, there is already regulation requiring companies to publish sustainability reports.
+On the other hand, more regulation could be necessary to assure the reports are trustworthy and legally binding.
+
+\subsection{Evaluation summary}
 The evaluation and results highlight notable trends and differences across the four models when applied to both the Zara and $H\&M$ datasets, 
 as well as to the custom scenarios of greenwashing detection and mitigation.
 
@@ -478,27 +495,6 @@ Llama3 also demonstrated the strongest performance in the faithfulness metric fo
 Across both datasets and scenarios, the majority of missing source pages remain concentrated in the "strategy" and "tracking" categories, highlighting a common area for improvement across all models. 
 While Llama3 and Mistral show overlapping weaknesses on specific questions, such as question 36 in the Zara dataset, no single question consistently failed across all models.
 
-Overall, while Llama3 maintains its position as the leading model in most evaluations, Phi3 demonstrates scenario-specific strengths. 
-Mistral provides balanced decision-making and stands out in some detection tasks but needs refinement in citation and overall consistency. 
-Llama2 performed above expectations in the greenwashing mitigation scenario but is severaly lacking in the decision making and citation aspect.
-
-\subsection{Ethical considerations}
-
-In this section, we discuss some ethical considerations.
-In the setup we used, we ask LLM models to judge whether questions are true or false, and to provide argumentation about the decision made.
-In the argumentation, the LLM model must refer to the source chunks that were used to base the decision on.
-Therefore, this solution is reasonably \textbf{transparant} and \textbf{explainable}, as it provides insight in how a decision was made by quoting the relevant information.
-However, this does not necessarily imply \textbf{trustworthiness}.
-The authors of \cite{durability} warned that the RAG solution could generate valuable output but should not be seen as a replacement for human experts.
-Furthermore, as we are comparing the answers to ground truth values produced by ChatGPT-4o, we can only have faith in the produced answers and metrics if we trust the ground truths to be accurate.
-There is a degree of \textbf{input bias} in our experiments.
-Companies have a vested interest in publishing optimistic and forward-looking sustainability reports.
-In other words, the reports used to provide argumentation to the questions answered, are not necessarily objective.
-Furthermore, since ChatGPT was used to establish ground truths for the questions, any and all biases present in that model would leak in the performance metrics.
-Finally, \textbf{regulation} is important in this context as well.
-On the one hand, there is already regulation requiring companies to publish sustainability reports.
-On the other hand, more regulation could be necessary to assure the reports are trustworthy and legally binding.
-
 \section{Conclusions and Discussion} \label{sec:conclusions}
 
 For this assignment, we have adapted the approach described in \cite{durability} to evaluate questions related to greenwashing on fast fashion durability reports.
@@ -509,7 +505,7 @@ The main conclusions of this research are : \textbf{i)} all evaluated models exh
 The \texttt{Llama2} model - the smallest LLM model we tested -  consistently scores worst.
 The \texttt{Llama3:instruct} model seems to perform best.
 The instruction tuning done for this model appears to help for these specific tasks.
-Against our expectations, the instruction tuned \texttt{Phi3:14b-instruct} model is almost twice the size of \texttt{Llama3:instruct}, but performs consistently worse than the latter.
+Contrary to our expectations, the instruction-tuned \texttt{Phi3:14b-instruct} model is nearly twice the size of \texttt{Llama3:instruct}, yet consistently performs worse compared to the latter.
 Even though the RAG setup permits answering domain specific questions by introducing the right context, we clearly see the limitations of such a setup as well.
 Introducing the right context alone is not sufficient to coherently and accurately answer questions that need reasoning about that context.
 
