@@ -17,3 +17,18 @@ report/report.bcf
 src/__pycache__
 vector-store
 **/Excel_Output*
+data/hm_gpt-4o_topk8_paramsall.xlsx
+data/hm_llama2_topk8_paramsall.xlsx
+data/hm_llama3:instruct_topk8_paramsall.xlsx
+data/hm_mistral_topk8_paramsall.xlsx
+data/hm_phi3:14b-instruct_topk8_paramsall.xlsx
+data/scenarios.ods
+data/zara_gpt-4o_topk8_paramsall.xlsx
+data/zara_llama2_topk8_paramsall.xlsx
+data/zara_llama3:instruct_topk8_paramsall.xlsx
+data/zara_mistral_topk8_paramsall.xlsx
+data/zara_phi3:14b-instruct_topk8_paramsall copy.xlsx
+data/zara_phi3:14b-instruct_topk8_paramsall.xlsx
+faith_zara.png
+Missing_Values.png
+zara_comparison_decision.jpg

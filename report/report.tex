@@ -117,7 +117,7 @@ The \texttt{Llama3:instruct} model is used for metric evaluation.
 To evaluate the quality of the LLM outputs, we employ four key metrics:
 \begin{itemize}
     \item [\textbf{Faithfulness}] evaluates whether the response stays true to the source materials. This means avoiding new or fabricated information (hallucinations): the answer should not include claims that are not supported by the original context.
-    \item [\textbf{Context relevancy}] checks if the answer properly addresses the question based on the text provided. Rather than going into unrelated details, a relevant response will use the most appropriate information from the reports to respond directly to the query.
+    \item [\textbf{Context relevancy}] focuses on whether the context retrieved from the knowledge base match the user’s query. Rather than evaluating the final answer, we checks if the retrieved embeddings themselves are aligned with what the user is asking. By measuring similarity between the query and each embedding, we have a way to evaluate the retrieval step in our RAG system.
     \item [\textbf{Correctness}] measures whether each statement in the response is factually accurate. If the answer claims a company has adopted a specific policy or reached a certain milestone, these points must match verifiable details from the text or known ground truths.
     \item [\textbf{Semantic similarity}] looks at the underlying meaning of the model’s answer, rather than focusing on specific words. Even if the wording differs from the source or a reference answer, the response is considered similar if it conveys the same essential ideas or facts.
 \end{itemize}
@@ -346,7 +346,14 @@ Phi3 secures second place with the highest number of 4.0 scores, followed by Mis
     \caption{Correctness scores}
     \label{fig:image_label}
 \end{figure}
-
+\subsubsection{Context relevancy}
+Figure \ref{fig:image_label} shows that the average context relevancy score is higher for Zara than for H\&M, but both scores remain relatively low overall. This suggests that while the Zara report appears to be structured in a way that makes it somewhat easier for the retrieval process to find relevant passages, neither knowledge bases are yielding highly targeted embeddings.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{./images/context_relevancy_comp.png}
+    \caption{A comparison of the context relevancy between the Zara and H\&M report}
+    \label{fig:image_label}
+\end{figure}
 \subsection{Scenario Questions}
 In this section, we evaluate the models across two scenarios involving custom questions: 
 the first scenario consists of 10 questions focused on detecting greenwashing, 
