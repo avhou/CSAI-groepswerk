@@ -454,23 +454,26 @@ For the $H\&M$ dataset, Llama2 is the only model to achieve a 4.5. Mistral follo
 \subsection{Conclusion}
 The evaluation and results highlight notable trends and differences across the four models when applied to both the Zara and $H\&M$ datasets, 
 as well as to the custom scenarios of greenwashing detection and mitigation.
+
 Llama3 consistently emerges as the strongest performer overall in terms of answer similarity, 
 achieving the highest average similarity scores and the highest count of questions most similar to the ChatGPT-4o ground truth.
-Phi3 also demonstrates strong performance, often ranking second in both metrics, particularly excelling in greenwashing mitigation where it achieved the highest average similarity ($30\%$) and led in question count for Zara data. 
+Phi3 also demonstrates strong performance, often ranking second in both metrics. 
 However, Phi3’s performance in citing source pages remains a significant challenge. Mistral provides balanced decision-making and leads in some scenario-specific evaluations,
 such as greenwashing detection for $H\&M$, but it lags behind in citation completeness and average similarity scores. Llama2, while consistent in its "yes" responses, continues to struggle significantly with citing source pages, realistic decision-making, and overall similarity performance.
 
-In the greenwashing detection scenario, Llama3 performed best for the Zara dataset with $26.2\%$ average similarity, tying with Mistral for the most questions with the highest similarity (3 each). For $H\&M$, Mistral outperformed Llama3 with $23\%$ vs. $22\%$ average similarity, 
-and Mistral had the most questions with the highest similarity (3), followed by Llama2 with 2. Despite its weaker overall performance, Llama2 surprisingly outperformed Phi3 in question count for Zara data.
+In the greenwashing detection scenario, Llama3 achieved the highest average semantic similarity scores for both the Zara and $H\&M$ datasets, with 87\% and 80\%, respectively. It also dominated in overall similarity, attaining the highest similarity score in all 9 questions for the Zara dataset and in 4 questions for the $H\&M$ dataset.  
+Phi3 also performed well in terms of average similarity, scoring 82\% for the Zara dataset, but slightly lower at 78\% for the $H\&M$ dataset. Meanwhile, Llama2 and Mistral demonstrated strong performance in the faithfulness evaluation.
 
-In the greenwashing mitigation scenario, Phi3 excelled for Zara with the highest average similarity ($30\%$) and led with 5 questions scoring the highest similarity. Llama3 performed second-best with $25\%$ similarity but scored highest on only one question. 
-For $H\&M$, Llama3 slightly outperformed Mistral in average similarity ($24.9\%$ vs. $24.2\%$), while Mistral and Llama2 tied for the most questions with the highest similarity (2 each).
+In the greenwashing mitigation scenario, Llama2 achieved the highest average similarity scores and the highest number of questions with the highest similarity for both the Zara and $H\&M$ datasets.  
+For the correctness metric, Llama3 performed slightly better than Llama2 in the Zara dataset but was surpassed by Llama2 in the $H\&M$ dataset.  
+Llama3 also demonstrated the strongest performance in the faithfulness metric for both datasets. However, in the $H\&M$ dataset, it tied with Llama2.
 
 Across both datasets and scenarios, the majority of missing source pages remain concentrated in the "strategy" and "tracking" categories, highlighting a common area for improvement across all models. 
 While Llama3 and Mistral show overlapping weaknesses on specific questions, such as question 36 in the Zara dataset, no single question consistently failed across all models.
 
-Overall, while Llama3 maintains its position as the leading model in most evaluations, Phi3 demonstrates scenario-specific strengths, particularly in greenwashing mitigation. 
-Mistral provides balanced decision-making and stands out in some detection tasks but needs refinement in citation and overall consistency.  
+Overall, while Llama3 maintains its position as the leading model in most evaluations, Phi3 demonstrates scenario-specific strengths. 
+Mistral provides balanced decision-making and stands out in some detection tasks but needs refinement in citation and overall consistency. 
+Llama2 performed above expectations in the greenwashing mitigation scenario but is severaly lacking in the decision making and citation aspect.
 
 \subsection{Ethical considerations}
 
